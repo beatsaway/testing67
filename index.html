@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7ef">
+  <meta name="description" content="Meet the world's tortoises, from the giant Galápagos tortoise to the tiny speckled padloper.">
+  <title>Tortoises — slow, steady, remarkable</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #26352c;
+      --muted: #68766b;
+      --green: #526d52;
+      --lime: #dce8b9;
+      --paper: #f6f7ef;
+      --white: #fffefa;
+      --sand: #eee8d8;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "DM Sans", sans-serif;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+    .topbar {
+      height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.03em; }
+    .brand-mark { font-size: 1.45rem; }
+    nav { display: flex; gap: 30px; color: var(--muted); font-size: .9rem; }
+    nav a:hover, .text-link:hover { color: var(--green); }
+    .hero {
+      min-height: 490px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 54px;
+      padding-block: 48px 72px;
+    }
+    .eyebrow { color: var(--green); font-size: .76rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+    h1, h2, h3 { font-family: "Playfair Display", Georgia, serif; line-height: 1.12; }
+    h1 { max-width: 560px; margin: 18px 0; font-size: clamp(3.2rem, 6vw, 5.2rem); letter-spacing: -.045em; }
+    .hero-copy > p { max-width: 470px; color: var(--muted); font-size: 1.06rem; }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      padding: 13px 19px;
+      border-radius: 999px;
+      background: var(--green);
+      color: white;
+      font-size: .9rem;
+      font-weight: 600;
+      transition: transform .2s, background .2s;
+    }
+    .button:hover { transform: translateY(-2px); background: #3e5941; }
+    .hero-art {
+      min-height: 370px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 48% 48% 38% 38% / 44% 44% 34% 34%;
+      background: radial-gradient(circle at 65% 25%, #f5e9bb 0 7%, transparent 7.5%), linear-gradient(145deg, #d5e0bb, #a9bd92 58%, #879d79);
+      position: relative;
+    }
+    .hero-art::before, .hero-art::after { content: ""; position: absolute; border-radius: 50%; background: #829873; opacity: .55; }
+    .hero-art::before { width: 270px; height: 100px; bottom: -34px; left: -45px; }
+    .hero-art::after { width: 320px; height: 120px; right: -85px; bottom: -55px; background: #6f896d; }
+    .tortoise-emoji { z-index: 1; font-size: clamp(9rem, 20vw, 15rem); filter: drop-shadow(0 18px 10px #31492d35); transform: rotate(-8deg); }
+    .fact { position: absolute; z-index: 2; right: 7%; bottom: 12%; padding: 13px 17px; border-radius: 16px; background: var(--white); box-shadow: 0 12px 30px #26352c16; font-size: .8rem; }
+    .fact strong { display: block; font-size: 1.1rem; }
+    .intro { padding: 64px 0 42px; text-align: center; }
+    .intro h2 { margin: 12px 0; font-size: clamp(2rem, 4vw, 3rem); }
+    .intro p { max-width: 590px; margin: 0 auto; color: var(--muted); }
+    .species { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 24px 0 90px; }
+    .card { min-height: 320px; padding: 26px; border-radius: 24px; background: var(--white); transition: transform .2s, box-shadow .2s; }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 18px 40px #26352c0d; }
+    .card-top { display: flex; align-items: center; justify-content: space-between; }
+    .animal { display: grid; width: 58px; height: 58px; place-items: center; border-radius: 18px; background: var(--lime); font-size: 2rem; }
+    .tag { color: var(--green); font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .card h3 { margin: 22px 0 8px; font-size: 1.55rem; }
+    .card p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .detail { display: flex; gap: 8px; margin-top: 19px; color: var(--green); font-size: .8rem; font-weight: 600; }
+    .feature {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 50px;
+      align-items: center;
+      margin-bottom: 90px;
+      padding: 40px;
+      border-radius: 30px;
+      background: var(--sand);
+    }
+    .feature-visual { display: grid; min-height: 220px; place-items: center; border-radius: 22px; background: linear-gradient(135deg, #e2d2a8, #c8d1a5); font-size: 7rem; }
+    .feature h2 { margin: 10px 0; font-size: 2.2rem; }
+    .feature p { color: var(--muted); }
+    .text-link { color: var(--green); font-size: .9rem; font-weight: 700; }
+    footer { padding: 25px 0 35px; color: var(--muted); font-size: .82rem; }
+    .footer-row { display: flex; justify-content: space-between; gap: 20px; }
+    @media (max-width: 760px) {
+      .wrap { width: min(100% - 32px, 560px); }
+      .topbar { height: 68px; }
+      nav { gap: 16px; font-size: .82rem; }
+      .hero { grid-template-columns: 1fr; gap: 30px; padding-block: 42px 50px; }
+      .hero-art { min-height: 300px; }
+      .species { grid-template-columns: 1fr; padding-bottom: 60px; }
+      .card { min-height: 0; }
+      .feature { grid-template-columns: 1fr; gap: 25px; margin-bottom: 60px; padding: 24px; }
+      .feature-visual { min-height: 180px; }
+    }
+    @media (max-width: 420px) {
+      nav { gap: 11px; }
+      nav a { font-size: .75rem; }
+      .footer-row { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="wrap topbar">
+    <a class="brand" href="#home" aria-label="Tortoises home"><span class="brand-mark" aria-hidden="true">🐢</span><span>THE TORTOISE EDIT</span></a>
+    <nav aria-label="Main navigation">
+      <a href="#species">Meet the species</a>
+      <a href="#story">Why tortoises?</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="wrap hero" id="home">
+      <div class="hero-copy">
+        <span class="eyebrow">A little world, at its own pace</span>
+        <h1>Slow down.<br>Look closer.</h1>
+        <p>Ancient, unhurried and wonderfully varied, tortoises have made a life on land for millions of years. Get to know a few of these remarkable reptiles.</p>
+        <a class="button" href="#species">Explore tortoises <span aria-hidden="true">↓</span></a>
+      </div>
+      <div class="hero-art" role="img" aria-label="Illustration of a tortoise in a sunlit green landscape">
+        <span class="tortoise-emoji" aria-hidden="true">🐢</span>
+        <div class="fact"><strong>200+ years</strong>Some giant tortoises can live this long</div>
+      </div>
+    </section>
+
+    <section class="wrap" id="species">
+      <div class="intro">
+        <span class="eyebrow">Meet the neighbors</span>
+        <h2>Small shells. Big stories.</h2>
+        <p>From sun-baked islands to scrubby grasslands, tortoises have adapted to an amazing range of habitats.</p>
+      </div>
+      <div class="species">
+        <article class="card">
+          <div class="card-top"><span class="animal" aria-hidden="true">🌋</span><span class="tag">Island giant</span></div>
+          <h3>Galápagos tortoise</h3>
+          <p>The largest living tortoise. Its long neck and distinctive shell shape help it reach plants across the Galápagos Islands.</p>
+          <div class="detail"><span>Pacific Ocean</span><span aria-hidden="true">·</span><span>Up to 5 ft long</span></div>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="animal" aria-hidden="true">🌿</span><span class="tag">Forest dweller</span></div>
+          <h3>Aldabra giant tortoise</h3>
+          <p>One of the biggest tortoises on Earth, this gentle grazer lives on the Aldabra Atoll in the Seychelles.</p>
+          <div class="detail"><span>Indian Ocean</span><span aria-hidden="true">·</span><span>Island ecosystem</span></div>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="animal" aria-hidden="true">☀️</span><span class="tag">Desert favorite</span></div>
+          <h3>Sulcata tortoise</h3>
+          <p>Also called the African spurred tortoise, it is well suited to hot, dry places and digs burrows to escape the heat.</p>
+          <div class="detail"><span>Sub-Saharan Africa</span><span aria-hidden="true">·</span><span>Powerful digger</span></div>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="animal" aria-hidden="true">🌼</span><span class="tag">Colorful shell</span></div>
+          <h3>Indian star tortoise</h3>
+          <p>Its beautifully patterned shell has star-like markings. This shy tortoise is found in dry scrub and grassland.</p>
+          <div class="detail"><span>India & Sri Lanka</span><span aria-hidden="true">·</span><span>Distinctive pattern</span></div>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="animal" aria-hidden="true">🍂</span><span class="tag">Forest wanderer</span></div>
+          <h3>Red-footed tortoise</h3>
+          <p>Bright scales on its legs make this South American species easy to recognize. It enjoys a varied diet of plants and fruit.</p>
+          <div class="detail"><span>South America</span><span aria-hidden="true">·</span><span>Omnivorous</span></div>
+        </article>
+        <article class="card">
+          <div class="card-top"><span class="animal" aria-hidden="true">🪨</span><span class="tag">Tiny tortoise</span></div>
+          <h3 Speckled padloper</h3>
+          <p>One of the world's smallest tortoises, it blends into rocky South African terrain and shelters in small crevices.</p>
+          <div class="detail"><span>South Africa</span><span aria-hidden="true">·</span><span>Just a few inches</span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="wrap feature" id="story">
+      <div class="feature-visual" role="img" aria-label="A tortoise shell pattern inspired by nature">🐢</div>
+      <div>
+        <span class="eyebrow">A shell is not a home you can leave</span>
+        <h2>Built to be part of them.</h2>
+        <p>A tortoise's shell is connected to its skeleton and grows along with it. The shell offers protection, but every species has its own shape, size and way of life.</p>
+        <a class="text-link" href="#species">Discover the differences <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <div class="footer-row"><span>Made for curious minds and slow afternoons.</span><span>Explore gently. Respect wild habitats.</span></div>
+  </footer>
+</body>
+</html>
