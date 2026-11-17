@@ -1,0 +1,2168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LUNAR DECK — Rover Ops</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #07080c;
+      --panel: rgba(8, 8, 10, 0.78);
+      --panel-edge: rgba(236, 226, 206, 0.22);
+      --cream: #f6f1e8;
+      --cream-dim: #cfc6b6;
+      --muted: #8a8378;
+      --sun: #fff3e4;
+      --amber: #d29a45;
+      --amber-hot: #f0d56a;
+      --earth: #8eb8d8;
+      --ice: #9ec0e0;
+      --danger: #c24e46;
+      --ok: #6eae78;
+      --glow: 0 0 28px rgba(240, 213, 106, 0.22);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--ink);
+      color: var(--cream);
+      font-family: "Syne", sans-serif;
+    }
+
+    #viewport {
+      position: fixed;
+      inset: 0;
+      display: block;
+    }
+
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hud * { pointer-events: none; }
+    .hud button, .hud .interactive { pointer-events: auto; }
+
+    .brand-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 1.15rem 1.5rem 2.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      background:
+        linear-gradient(to bottom, rgba(7, 8, 12, 0.72) 0%, rgba(7, 8, 12, 0) 100%);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .brand-mark {
+      font-size: clamp(1.85rem, 4vw, 2.85rem);
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      color: var(--cream);
+      line-height: 0.95;
+      text-shadow: 0 0 40px rgba(255, 243, 228, 0.18);
+      animation: brandBreath 5.5s ease-in-out infinite;
+    }
+
+    .brand-mark span {
+      color: var(--amber-hot);
+      letter-spacing: 0.18em;
+    }
+
+    .brand-sub {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.34em;
+      color: var(--earth);
+      text-transform: uppercase;
+      opacity: 0.9;
+    }
+
+    @keyframes brandBreath {
+      0%, 100% { filter: brightness(1); opacity: 0.94; }
+      50% { filter: brightness(1.08); opacity: 1; }
+    }
+
+    .money-hero {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.15rem;
+      min-width: 11rem;
+    }
+
+    .money-label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .money-row {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+
+    .money-coin {
+      width: 1.35rem;
+      height: 1.35rem;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      border: 2px solid #b08b21;
+      background:
+        radial-gradient(circle at 32% 28%, #fff6c8, #f0d56a 36%, #d4af37 58%, #8d6a14 100%);
+      box-shadow: 0 0 16px rgba(240, 213, 106, 0.35);
+    }
+
+    .money-coin.spin { animation: coinTurn 1.05s linear infinite; }
+
+    @keyframes coinTurn {
+      from { transform: rotateY(0deg); }
+      to { transform: rotateY(360deg); }
+    }
+
+    .money-value {
+      font-size: clamp(2rem, 4.2vw, 2.85rem);
+      font-weight: 800;
+      color: var(--amber-hot);
+      letter-spacing: 0.02em;
+      line-height: 1;
+      transition: transform 0.25s ease, color 0.25s ease, text-shadow 0.25s ease;
+      text-shadow: var(--glow);
+    }
+
+    .money-value.bump {
+      transform: scale(1.08);
+      color: var(--cream);
+    }
+
+    .cargo-chip {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.14em;
+      color: var(--cream-dim);
+      padding: 0.2rem 0.55rem;
+      border: 1px solid rgba(236, 226, 206, 0.22);
+      background: rgba(8, 8, 10, 0.55);
+    }
+
+    .cargo-chip.has { color: var(--ice); border-color: rgba(158, 192, 224, 0.4); }
+
+    .ctrac {
+      position: absolute;
+      left: 1.25rem;
+      bottom: 1.25rem;
+      width: min(17.5rem, calc(100vw - 2.5rem));
+      display: grid;
+      gap: 0.55rem;
+      padding: 0.75rem 0.9rem 0.85rem;
+      background: var(--panel);
+      border: 1px solid var(--panel-edge);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .ctrac-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.5rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid rgba(236, 226, 206, 0.14);
+    }
+
+    .ctrac-mark {
+      font-size: 0.95rem;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      color: var(--cream);
+    }
+
+    .ctrac-mark span { color: var(--earth); }
+
+    .ctrac-sub {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.3;
+      max-width: 9.5rem;
+    }
+
+    .ctrac-block {
+      display: grid;
+      gap: 0.28rem;
+    }
+
+    .ctrac-kicker {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.18em;
+      color: var(--earth);
+      text-transform: uppercase;
+    }
+
+    .ctrac-contract {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      line-height: 1.4;
+      color: var(--cream-dim);
+    }
+
+    .telemetry {
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .tel-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.74rem;
+    }
+
+    .tel-row span:first-child {
+      color: var(--muted);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .tel-row .warn { color: var(--danger); }
+    .tel-row .ok { color: var(--ok); }
+    .tel-row .hot { color: var(--amber-hot); }
+
+    .bar {
+      width: 100%;
+      height: 3px;
+      background: rgba(255, 255, 255, 0.08);
+      margin-top: 0.22rem;
+      overflow: hidden;
+    }
+
+    .bar > i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #6eae78, #9ec0e0);
+      transition: width 0.15s linear, background 0.2s ease;
+    }
+
+    .bar.danger > i { background: var(--danger); }
+    .bar.hot > i { background: linear-gradient(90deg, var(--amber), var(--amber-hot)); }
+
+    .status-feed {
+      position: absolute;
+      right: 1.25rem;
+      bottom: 1.25rem;
+      width: min(22rem, calc(100vw - 2.5rem));
+      padding: 0.8rem 1.05rem;
+      background: var(--panel);
+      border: 1px solid var(--panel-edge);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.72rem;
+      line-height: 1.5;
+      color: var(--cream-dim);
+      min-height: 3.2rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .status-feed .tag {
+      color: var(--earth);
+      letter-spacing: 0.16em;
+      margin-right: 0.45rem;
+    }
+
+    .controls-hint {
+      position: absolute;
+      left: 50%;
+      bottom: 1.25rem;
+      transform: translateX(-50%);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.64rem;
+      letter-spacing: 0.08em;
+      color: rgba(246, 241, 232, 0.42);
+      text-align: center;
+      max-width: 36rem;
+      line-height: 1.5;
+      pointer-events: none;
+    }
+
+    @media (max-width: 900px) {
+      .controls-hint { display: none; }
+    }
+
+    .action-row {
+      position: absolute;
+      top: 5.4rem;
+      right: 1.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .btn {
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      padding: 0.58rem 1.05rem;
+      border: 1px solid rgba(236, 226, 206, 0.4);
+      background: rgba(8, 8, 10, 0.72);
+      color: var(--cream);
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(246, 241, 232, 0.1);
+      border-color: var(--amber-hot);
+      box-shadow: var(--glow);
+      transform: translateY(-1px);
+    }
+
+    .btn.active {
+      background: rgba(142, 184, 216, 0.16);
+      border-color: var(--earth);
+      color: var(--ice);
+    }
+
+    .btn.secondary {
+      border-color: rgba(138, 131, 120, 0.45);
+      color: var(--cream-dim);
+      background: rgba(8, 8, 10, 0.55);
+    }
+
+    .assist-pill {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.66rem;
+      letter-spacing: 0.18em;
+      padding: 0.35rem 0.7rem;
+      border: 1px solid transparent;
+      color: var(--muted);
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: opacity 0.25s ease, transform 0.25s ease, color 0.2s, border-color 0.2s;
+    }
+
+    .assist-pill.on {
+      opacity: 1;
+      transform: translateY(0);
+      color: var(--ice);
+      border-color: rgba(158, 192, 224, 0.4);
+      background: rgba(8, 8, 10, 0.55);
+    }
+
+    .slope-alert {
+      position: absolute;
+      top: 28%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.96);
+      padding: 0.55rem 1.15rem;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.82rem;
+      letter-spacing: 0.2em;
+      color: #ffd0c8;
+      border: 1px solid rgba(194, 78, 70, 0.65);
+      background: rgba(40, 12, 10, 0.78);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .slope-alert.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      animation: alertFlash 1.1s ease-in-out infinite;
+    }
+
+    @keyframes alertFlash {
+      0%, 100% { box-shadow: 0 0 0 rgba(194, 78, 70, 0); }
+      50% { box-shadow: 0 0 24px rgba(194, 78, 70, 0.4); }
+    }
+
+    .panel-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 30%, rgba(48, 56, 72, 0.35), rgba(6, 7, 10, 0.88) 62%);
+      z-index: 40;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .panel-overlay.open { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .upgrade-panel {
+      width: min(34rem, calc(100vw - 2rem));
+      max-height: min(80vh, 36rem);
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(12, 14, 18, 0.96), rgba(7, 8, 12, 0.98));
+      border: 1px solid var(--panel-edge);
+      padding: 1.45rem 1.5rem 1.25rem;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55), inset 0 0 80px rgba(0, 0, 0, 0.35);
+    }
+
+    .upgrade-panel h2 {
+      font-size: 1.55rem;
+      letter-spacing: 0.16em;
+      color: var(--cream);
+      margin-bottom: 0.25rem;
+      font-weight: 800;
+    }
+
+    .upgrade-panel .lede {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 1.1rem;
+      letter-spacing: 0.06em;
+    }
+
+    .upgrade-list { list-style: none; display: grid; gap: 0.55rem; }
+
+    .upgrade-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.35rem 0.8rem;
+      padding: 0.7rem 0.85rem;
+      border: 1px solid rgba(236, 226, 206, 0.14);
+      background: rgba(255, 255, 255, 0.03);
+      align-items: center;
+    }
+
+    .upgrade-item.owned {
+      border-color: rgba(142, 184, 216, 0.4);
+      background: rgba(142, 184, 216, 0.08);
+    }
+
+    .upgrade-item.locked { opacity: 0.7; }
+
+    .upgrade-item h3 {
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+    }
+
+    .upgrade-item p {
+      grid-column: 1 / -1;
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .price {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.82rem;
+      color: var(--amber-hot);
+      white-space: nowrap;
+    }
+
+    .price.locked { color: var(--muted); }
+
+    .buy-btn {
+      font-family: "Syne", sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+      padding: 0.38rem 0.75rem;
+      border: 1px solid var(--earth);
+      background: rgba(142, 184, 216, 0.12);
+      color: var(--ice);
+      cursor: pointer;
+    }
+
+    .buy-btn:disabled {
+      border-color: rgba(138, 131, 120, 0.35);
+      color: var(--muted);
+      background: transparent;
+      cursor: not-allowed;
+    }
+
+    .panel-close {
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    .sell-panel {
+      width: min(30rem, calc(100vw - 2rem));
+      max-height: min(78vh, 32rem);
+      overflow: auto;
+      background: linear-gradient(180deg, rgba(12, 14, 18, 0.96), rgba(7, 8, 12, 0.98));
+      border: 1px solid var(--panel-edge);
+      padding: 1.35rem 1.4rem 1.2rem;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.55), inset 0 0 80px rgba(0, 0, 0, 0.35);
+    }
+
+    .sell-panel h2 {
+      font-size: 1.45rem;
+      letter-spacing: 0.16em;
+      color: var(--cream);
+      margin-bottom: 0.2rem;
+      font-weight: 800;
+    }
+
+    .sell-panel .lede {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      letter-spacing: 0.06em;
+    }
+
+    .sell-list { list-style: none; display: grid; gap: 0.5rem; }
+
+    .sell-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 0.4rem 0.7rem;
+      align-items: center;
+      padding: 0.65rem 0.8rem;
+      border: 1px solid rgba(236, 226, 206, 0.14);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .sell-item h3 {
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+    }
+
+    .sell-item .kind {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      grid-column: 1 / -1;
+    }
+
+    .sell-item .offer {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.85rem;
+      color: var(--amber-hot);
+      white-space: nowrap;
+    }
+
+    .sell-empty {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding: 1rem 0.2rem;
+      letter-spacing: 0.06em;
+    }
+
+    .sell-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .sell-actions .btn { flex: 1; }
+
+    .banner {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, rgba(48, 18, 14, 0.72) 0%, rgba(4, 6, 8, 0.9) 70%);
+      pointer-events: auto;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .banner.open { display: flex; flex-direction: column; gap: 0.8rem; }
+
+    .banner h1 {
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      letter-spacing: 0.18em;
+      color: var(--danger);
+      font-weight: 800;
+    }
+
+    .banner.ok h1 { color: var(--ok); }
+
+    .banner p {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.85rem;
+      color: var(--cream-dim);
+      max-width: 28rem;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .arm-hud {
+      position: absolute;
+      top: 50%;
+      left: 1.25rem;
+      transform: translateY(-50%);
+      padding: 0.8rem 0.95rem;
+      background: var(--panel);
+      border: 1px solid rgba(158, 192, 224, 0.4);
+      font-family: "IBM Plex Mono", monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      max-width: 12rem;
+      line-height: 1.5;
+      color: var(--cream-dim);
+    }
+
+    .arm-hud.show { opacity: 1; }
+
+    .scanlines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.22) 0px,
+        rgba(0, 0, 0, 0.22) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      opacity: 0.18;
+      mix-blend-mode: multiply;
+      animation: rasterFlicker 0.12s steps(2) infinite;
+    }
+
+    @keyframes rasterFlicker {
+      50% { opacity: 0.12; }
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+      background:
+        radial-gradient(ellipse at 50% 46%, rgba(0, 0, 0, 0) 46%, rgba(5, 6, 10, 0.58) 100%),
+        linear-gradient(to bottom, rgba(7, 8, 12, 0.35) 0%, rgba(7, 8, 12, 0) 18%),
+        linear-gradient(to top, rgba(7, 8, 12, 0.4) 0%, rgba(7, 8, 12, 0) 22%);
+    }
+
+    .sun-streak {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      background: radial-gradient(ellipse at 78% 18%, rgba(255, 243, 228, 0.08), transparent 42%);
+      animation: sunDrift 12s ease-in-out infinite alternate;
+      mix-blend-mode: screen;
+    }
+
+    @keyframes sunDrift {
+      from { opacity: 0.55; transform: translate3d(0, 0, 0); }
+      to { opacity: 0.9; transform: translate3d(-1.2%, 0.8%, 0); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="viewport"></canvas>
+  <div class="sun-streak"></div>
+  <div class="vignette"></div>
+  <div class="scanlines"></div>
+
+  <div class="hud" id="hud">
+    <div class="brand-bar">
+      <div class="brand">
+        <div class="brand-mark">LUNAR <span>DECK</span></div>
+        <div class="brand-sub">Rover Ops · Deck 01</div>
+      </div>
+      <div class="money-hero" aria-live="polite">
+        <div class="money-label">Money · Credits</div>
+        <div class="money-row">
+          <i class="money-coin" id="moneyCoin" aria-hidden="true"></i>
+          <div class="money-value" id="money">¤ 0</div>
+        </div>
+        <div class="cargo-chip" id="cargoChip">CARGO 0</div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <div class="assist-pill" id="assistPill">PATH ASSIST ENGAGED</div>
+      <button class="btn" id="sellBtn" type="button">Sell · C</button>
+      <button class="btn" id="upgradeBtn" type="button">Upgrades · U</button>
+      <button class="btn secondary" id="resetBtn" type="button">Reset · R</button>
+    </div>
+
+    <div class="slope-alert" id="slopeAlert">SLOPE CRITICAL</div>
+
+    <div class="arm-hud" id="armHud">
+      ARM MODE<br />
+      I/K pitch · J/L reach<br />
+      Space clamp · E exit
+    </div>
+
+    <aside class="ctrac" id="ctrac" aria-label="CTRAC mission console">
+      <div class="ctrac-head">
+        <div class="ctrac-mark">CT<span>RAC</span></div>
+        <div class="ctrac-sub">Contract · Telemetry · Route · Acquisition · Cargo</div>
+      </div>
+      <div class="ctrac-block">
+        <div class="ctrac-kicker">Contract</div>
+        <div class="ctrac-contract" id="ctracContract">Extract samples → sell for money → buy autonomy.</div>
+      </div>
+      <div class="ctrac-block">
+        <div class="ctrac-kicker">Telemetry</div>
+        <div class="telemetry">
+          <div>
+            <div class="tel-row"><span>INTEGRITY</span><span id="integrityTxt" class="ok">100%</span></div>
+            <div class="bar" id="integrityBar"><i></i></div>
+          </div>
+          <div>
+            <div class="tel-row"><span>PACK TEMP</span><span id="tempTxt">22°C</span></div>
+            <div class="bar" id="tempBar"><i></i></div>
+          </div>
+          <div class="tel-row"><span>SLOPE</span><span id="slopeTxt">0.0°</span></div>
+          <div class="tel-row"><span>SPEED</span><span id="speedTxt">0.0 m/s</span></div>
+          <div class="tel-row"><span>MODE</span><span id="modeTxt">DRIVE</span></div>
+        </div>
+      </div>
+      <div class="ctrac-block">
+        <div class="ctrac-kicker">Track</div>
+        <div class="tel-row"><span>ASSIST</span><span id="trackAssist">OFF</span></div>
+        <div class="tel-row"><span>TRAIL</span><span id="trackTrail">LOCKED</span></div>
+        <div class="tel-row"><span>ODO</span><span id="trackOdo">0 m</span></div>
+      </div>
+      <div class="ctrac-block">
+        <div class="ctrac-kicker">Acquisition · Cargo</div>
+        <div class="tel-row"><span>HELD</span><span id="cargoHeld">0</span></div>
+        <div class="tel-row"><span>VALUE</span><span id="cargoValue">¤ 0</span></div>
+      </div>
+    </aside>
+
+    <div class="status-feed"><span class="tag">COMMS</span><span id="statusMsg">Rover online. Extract samples to cargo, then sell for money. Hold Shift for path assist.</span></div>
+
+    <div class="controls-hint">
+      WASD drive · E arm · C sell cargo · U upgrades · Shift cruise
+    </div>
+  </div>
+
+  <div class="panel-overlay" id="sellOverlay">
+    <div class="sell-panel interactive">
+      <h2>SELL BAY</h2>
+      <p class="lede">Cargo → credits. Extract first, then sell. Keep it simple.</p>
+      <ul class="sell-list" id="sellList"></ul>
+      <div class="sell-actions">
+        <button class="btn" id="sellAllBtn" type="button">Sell all</button>
+        <button class="btn secondary panel-close" id="closeSell" type="button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-overlay" id="upgradeOverlay">
+    <div class="upgrade-panel interactive">
+      <h2>UPGRADE BAY</h2>
+      <p class="lede">Spend money · sensors unlock autonomy</p>
+      <ul class="upgrade-list" id="upgradeList"></ul>
+      <button class="btn panel-close" id="closeUpgrade" type="button">Close</button>
+    </div>
+  </div>
+
+  <div class="banner" id="failBanner">
+    <h1 id="failTitle">MISSION FAULT</h1>
+    <p id="failBody">Chassis compromised.</p>
+    <button class="btn interactive" id="failReset" type="button">Relaunch · R</button>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+    import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+    import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+    import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+    import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+    window.__roverBoot = "loading";
+    try {
+    const canvas = document.getElementById("viewport");
+    const moneyEl = document.getElementById("money");
+    const moneyCoin = document.getElementById("moneyCoin");
+    const cargoChip = document.getElementById("cargoChip");
+    const statusMsg = document.getElementById("statusMsg");
+    const integrityTxt = document.getElementById("integrityTxt");
+    const integrityBar = document.getElementById("integrityBar");
+    const tempTxt = document.getElementById("tempTxt");
+    const tempBar = document.getElementById("tempBar");
+    const slopeTxt = document.getElementById("slopeTxt");
+    const speedTxt = document.getElementById("speedTxt");
+    const modeTxt = document.getElementById("modeTxt");
+    const assistPill = document.getElementById("assistPill");
+    const slopeAlert = document.getElementById("slopeAlert");
+    const armHud = document.getElementById("armHud");
+    const upgradeOverlay = document.getElementById("upgradeOverlay");
+    const upgradeList = document.getElementById("upgradeList");
+    const sellOverlay = document.getElementById("sellOverlay");
+    const sellList = document.getElementById("sellList");
+    const failBanner = document.getElementById("failBanner");
+    const failTitle = document.getElementById("failTitle");
+    const failBody = document.getElementById("failBody");
+    const ctracContract = document.getElementById("ctracContract");
+    const trackAssist = document.getElementById("trackAssist");
+    const trackTrail = document.getElementById("trackTrail");
+    const trackOdo = document.getElementById("trackOdo");
+    const cargoHeld = document.getElementById("cargoHeld");
+    const cargoValue = document.getElementById("cargoValue");
+
+    const state = {
+      money: 0,
+      cargo: [],
+      integrity: 100,
+      temp: 22,
+      slope: 0,
+      speed: 0,
+      mode: "drive",
+      assist: false,
+      failed: false,
+      failReason: "",
+      owned: new Set(),
+      trail: [],
+      samplesTaken: new Set(),
+      lastBump: 0,
+      extractProgress: 0,
+      clawAligned: false,
+      odometer: 0,
+      soldCount: 0,
+    };
+
+    const UPGRADES = [
+      {
+        id: "slope_warn",
+        name: "Slope Warning",
+        desc: "HUD critical-slope alert when grade exceeds safe envelope.",
+        price: 40,
+        available: true,
+      },
+      {
+        id: "path_trail",
+        name: "Path Trail Map",
+        desc: "Persist a luminous trail of driven terrain for path memory.",
+        price: 60,
+        available: true,
+      },
+      {
+        id: "camera",
+        name: "Camera Sensor",
+        desc: "Forward optical feed with dust filter — future milestone.",
+        price: 120,
+        available: false,
+      },
+      {
+        id: "heat_sig",
+        name: "Heat Signature",
+        desc: "Thermal overlay for hot zones and battery stress.",
+        price: 150,
+        available: false,
+      },
+      {
+        id: "battery",
+        name: "Battery Checker",
+        desc: "Live pack health and drain forecast.",
+        price: 100,
+        available: false,
+      },
+      {
+        id: "terrain_scan",
+        name: "Terrain Scanner",
+        desc: "Slope/cliff preview cone ahead of the rover.",
+        price: 180,
+        available: false,
+      },
+      {
+        id: "satellite",
+        name: "Satellite Terrain Data",
+        desc: "Unlocks PLANNING: safest path + water/rare-earth checkpoints.",
+        price: 400,
+        available: false,
+      },
+      {
+        id: "rover2",
+        name: "Second Autonomous Rover",
+        desc: "Companion platform sharing map and money.",
+        price: 900,
+        available: false,
+      },
+    ];
+
+    function setStatus(msg) {
+      statusMsg.textContent = msg;
+    }
+
+    function cargoWorth() {
+      return state.cargo.reduce((sum, item) => sum + item.value, 0);
+    }
+
+    function paintMoney(animate) {
+      moneyEl.textContent = `¤ ${state.money}`;
+      if (animate) {
+        moneyEl.classList.remove("bump");
+        void moneyEl.offsetWidth;
+        moneyEl.classList.add("bump");
+        moneyCoin.classList.add("spin");
+        clearTimeout(paintMoney._t);
+        paintMoney._t = setTimeout(() => moneyCoin.classList.remove("spin"), 1100);
+      }
+    }
+
+    function paintCargo() {
+      const n = state.cargo.length;
+      const worth = cargoWorth();
+      cargoChip.textContent = `CARGO ${n}`;
+      cargoChip.classList.toggle("has", n > 0);
+      cargoHeld.textContent = String(n);
+      cargoValue.textContent = `¤ ${worth}`;
+      document.getElementById("sellAllBtn").disabled = n === 0;
+    }
+
+    function paintCtrac() {
+      const remain = Math.max(0, 4 - state.samplesTaken.size);
+      if (state.cargo.length > 0) {
+        ctracContract.textContent = `Cargo ready — sell ¤${cargoWorth()} in Sell Bay (C).`;
+      } else if (remain > 0) {
+        ctracContract.textContent = `Contract: extract ${remain} remaining deposit${remain === 1 ? "" : "s"} into cargo, then sell for money.`;
+      } else {
+        ctracContract.textContent = "Contract clear — spend money on upgrades or scout new ground.";
+      }
+      trackAssist.textContent = state.assist ? "ON" : "OFF";
+      trackAssist.className = state.assist ? "ok" : "";
+      trackTrail.textContent = state.owned.has("path_trail") ? "LIVE" : "LOCKED";
+      trackTrail.className = state.owned.has("path_trail") ? "ok" : "";
+      trackOdo.textContent = `${Math.round(state.odometer)} m`;
+    }
+
+    function bumpMoney(amount) {
+      state.money += amount;
+      paintMoney(true);
+      renderUpgrades();
+      paintCtrac();
+    }
+
+    function addCargo(item) {
+      state.cargo.push(item);
+      paintCargo();
+      paintCtrac();
+      renderSellList();
+    }
+
+    function renderSellList() {
+      sellList.innerHTML = "";
+      if (!state.cargo.length) {
+        const empty = document.createElement("li");
+        empty.className = "sell-empty";
+        empty.textContent = "Cargo empty. Extract a deposit first.";
+        sellList.appendChild(empty);
+        return;
+      }
+      state.cargo.forEach((item, idx) => {
+        const li = document.createElement("li");
+        li.className = "sell-item";
+        li.innerHTML = `
+          <h3>${item.label}</h3>
+          <div class="offer">¤ ${item.value}</div>
+          <button class="buy-btn" type="button">Sell</button>
+          <div class="kind">${item.type.toUpperCase()} · SAMPLE</div>
+        `;
+        li.querySelector("button").addEventListener("click", () => sellCargoAt(idx));
+        sellList.appendChild(li);
+      });
+    }
+
+    function sellCargoAt(idx) {
+      if (idx < 0 || idx >= state.cargo.length) return;
+      const [item] = state.cargo.splice(idx, 1);
+      state.soldCount += 1;
+      bumpMoney(item.value);
+      setStatus(`Sold ${item.label} for ¤${item.value}. Money is the mission score.`);
+      paintCargo();
+      renderSellList();
+      paintCtrac();
+    }
+
+    function sellAllCargo() {
+      if (!state.cargo.length) {
+        setStatus("Nothing to sell — cargo empty.");
+        return;
+      }
+      const total = cargoWorth();
+      const n = state.cargo.length;
+      state.soldCount += n;
+      state.cargo.length = 0;
+      bumpMoney(total);
+      setStatus(`Sold ${n} sample${n === 1 ? "" : "s"} for ¤${total}.`);
+      paintCargo();
+      renderSellList();
+      paintCtrac();
+    }
+
+    function renderUpgrades() {
+      upgradeList.innerHTML = "";
+      for (const u of UPGRADES) {
+        const owned = state.owned.has(u.id);
+        const li = document.createElement("li");
+        li.className = `upgrade-item ${owned ? "owned" : ""} ${!u.available && !owned ? "locked" : ""}`;
+        const canBuy = u.available && !owned && state.money >= u.price;
+        li.innerHTML = `
+          <h3>${u.name}${owned ? " · OWNED" : ""}</h3>
+          <div class="price ${u.available || owned ? "" : "locked"}">${owned ? "INSTALLED" : `¤ ${u.price}${u.available ? "" : " · LOCKED"}`}</div>
+          <p>${u.desc}</p>
+        `;
+        if (u.available && !owned) {
+          const btn = document.createElement("button");
+          btn.className = "buy-btn";
+          btn.textContent = "Acquire";
+          btn.disabled = !canBuy;
+          btn.addEventListener("click", () => buyUpgrade(u.id));
+          li.appendChild(btn);
+        }
+        upgradeList.appendChild(li);
+      }
+    }
+
+    function buyUpgrade(id) {
+      const u = UPGRADES.find((x) => x.id === id);
+      if (!u || !u.available || state.owned.has(id) || state.money < u.price) return;
+      state.money -= u.price;
+      state.owned.add(id);
+      paintMoney(false);
+      setStatus(`${u.name} installed. Spent ¤${u.price}.`);
+      renderUpgrades();
+      paintCtrac();
+      if (id === "path_trail") ensureTrailVisible(true);
+    }
+
+    paintMoney(false);
+    paintCargo();
+    paintCtrac();
+    renderUpgrades();
+    renderSellList();
+
+    // --- Procedural textures (testing67-style regolith / hull / solar) ---
+    function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+    function hash2(x, y) {
+      const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
+      return s - Math.floor(s);
+    }
+    function valueNoise(x, y) {
+      const x0 = Math.floor(x), y0 = Math.floor(y);
+      const fx = x - x0, fy = y - y0;
+      const ux = fx * fx * (3 - 2 * fx);
+      const uy = fy * fy * (3 - 2 * fy);
+      const a = hash2(x0, y0);
+      const b = hash2(x0 + 1, y0);
+      const c = hash2(x0, y0 + 1);
+      const d = hash2(x0 + 1, y0 + 1);
+      return a * (1 - ux) * (1 - uy) + b * ux * (1 - uy) + c * (1 - ux) * uy + d * ux * uy;
+    }
+    function fbm(x, y) {
+      let v = 0, a = 0.5, f = 1;
+      for (let i = 0; i < 5; i++) {
+        v += a * valueNoise(x * f, y * f);
+        a *= 0.5;
+        f *= 2.05;
+      }
+      return v;
+    }
+
+    function regolithMaps() {
+      const N = 256;
+      const albedo = document.createElement("canvas");
+      albedo.width = albedo.height = N;
+      const normal = document.createElement("canvas");
+      normal.width = normal.height = N;
+      const ag = albedo.getContext("2d");
+      const ng = normal.getContext("2d");
+      const aImg = ag.createImageData(N, N);
+      const nImg = ng.createImageData(N, N);
+      for (let y = 0; y < N; y++) {
+        for (let x = 0; x < N; x++) {
+          const nx0 = x / N;
+          const ny0 = y / N;
+          const h = fbm(nx0 * 8, ny0 * 8);
+          const grain = valueNoise(nx0 * 48, ny0 * 48);
+          const hx = fbm((x + 1) / N * 8, ny0 * 8) - fbm((x - 1) / N * 8, ny0 * 8);
+          const hy = fbm(nx0 * 8, (y + 1) / N * 8) - fbm(nx0 * 8, (y - 1) / N * 8);
+          const shade = clamp(0.42 + h * 0.22 + (grain - 0.5) * 0.08, 0.18, 0.78);
+          const i = (y * N + x) * 4;
+          aImg.data[i] = Math.floor(shade * 168);
+          aImg.data[i + 1] = Math.floor(shade * 164);
+          aImg.data[i + 2] = Math.floor(shade * 156);
+          aImg.data[i + 3] = 255;
+          const nx = -hx * 2.4;
+          const nyv = -hy * 2.4;
+          const nz = 1;
+          const len = Math.hypot(nx, nyv, nz) || 1;
+          nImg.data[i] = Math.floor((nx / len * 0.5 + 0.5) * 255);
+          nImg.data[i + 1] = Math.floor((nyv / len * 0.5 + 0.5) * 255);
+          nImg.data[i + 2] = Math.floor((nz / len * 0.5 + 0.5) * 255);
+          nImg.data[i + 3] = 255;
+        }
+      }
+      ag.putImageData(aImg, 0, 0);
+      ng.putImageData(nImg, 0, 0);
+      const map = new THREE.CanvasTexture(albedo);
+      const norm = new THREE.CanvasTexture(normal);
+      map.wrapS = map.wrapT = norm.wrapS = norm.wrapT = THREE.RepeatWrapping;
+      map.repeat.set(18, 18);
+      norm.repeat.set(18, 18);
+      map.colorSpace = THREE.SRGBColorSpace;
+      map.anisotropy = norm.anisotropy = 8;
+      return { map, norm };
+    }
+
+    function hullTexture() {
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = 512;
+      const g = cv.getContext("2d");
+      g.fillStyle = "#e6e1d6";
+      g.fillRect(0, 0, 512, 512);
+      g.strokeStyle = "rgba(90,84,74,0.45)";
+      g.lineWidth = 2;
+      for (let x = 0; x <= 512; x += 64) {
+        g.beginPath(); g.moveTo(x, 0); g.lineTo(x, 512); g.stroke();
+      }
+      for (let y = 0; y <= 512; y += 128) {
+        g.beginPath(); g.moveTo(0, y); g.lineTo(512, y); g.stroke();
+      }
+      g.fillStyle = "rgba(70,64,56,0.45)";
+      for (let x = 32; x < 512; x += 64) {
+        for (let y = 12; y < 512; y += 28) {
+          g.beginPath(); g.arc(x, y, 1.4, 0, Math.PI * 2); g.fill();
+        }
+      }
+      const dust = g.createLinearGradient(0, 0, 0, 512);
+      dust.addColorStop(0, "rgba(90,80,70,0)");
+      dust.addColorStop(1, "rgba(90,80,70,0.22)");
+      g.fillStyle = dust;
+      g.fillRect(0, 0, 512, 512);
+      const t = new THREE.CanvasTexture(cv);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 8;
+      return t;
+    }
+
+    function solarTexture() {
+      const cv = document.createElement("canvas");
+      cv.width = 256;
+      cv.height = 384;
+      const g = cv.getContext("2d");
+      g.fillStyle = "#101820";
+      g.fillRect(0, 0, 256, 384);
+      const cols = 4, rows = 8, gap = 5;
+      const cw = (256 - gap * (cols + 1)) / cols;
+      const rh = (384 - gap * (rows + 1)) / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const shade = 16 + ((r * 3 + c) % 4) * 5;
+          g.fillStyle = `rgb(${shade},${shade + 36},${shade + 78})`;
+          const x = gap + c * (cw + gap);
+          const y = gap + r * (rh + gap);
+          g.fillRect(x, y, cw, rh);
+          g.strokeStyle = "rgba(186, 206, 226, 0.28)";
+          g.lineWidth = 1;
+          g.beginPath();
+          g.moveTo(x + 4, y + rh * 0.5);
+          g.lineTo(x + cw - 4, y + rh * 0.5);
+          g.stroke();
+        }
+      }
+      g.strokeStyle = "rgba(214, 222, 230, 0.85)";
+      g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(128, 8);
+      g.lineTo(128, 376);
+      g.stroke();
+      const t = new THREE.CanvasTexture(cv);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.anisotropy = 8;
+      return t;
+    }
+
+    // --- Three.js scene ---
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.22;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x000000);
+    scene.fog = new THREE.Fog(0x000000, 70, 260);
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.12, 500);
+    camera.position.set(6, 14, 24);
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    const bloom = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.11, 0.4, 0.88);
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.maxPolarAngle = Math.PI * 0.48;
+    controls.minDistance = 6;
+    controls.maxDistance = 48;
+    controls.enablePan = false;
+
+    const hemi = new THREE.HemisphereLight(0x0a0e16, 0x3a3228, 0.38);
+    scene.add(hemi);
+    scene.add(new THREE.AmbientLight(0x9eb0c8, 0.1));
+    const sun = new THREE.DirectionalLight(0xfff3e4, 3.35);
+    sun.position.set(40, 55, 18);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.near = 2;
+    sun.shadow.camera.far = 160;
+    sun.shadow.camera.left = -60;
+    sun.shadow.camera.right = 60;
+    sun.shadow.camera.top = 60;
+    sun.shadow.camera.bottom = -60;
+    sun.shadow.bias = -0.0004;
+    sun.shadow.normalBias = 0.04;
+    scene.add(sun);
+    scene.add(sun.target);
+    const fill = new THREE.DirectionalLight(0xc9d7ee, 0.36);
+    fill.position.set(-30, 20, -40);
+    scene.add(fill);
+
+    const sunDir = new THREE.Vector3(0.62, 0.34, 0.38).normalize();
+    sun.position.copy(sunDir.clone().multiplyScalar(90));
+    sun.target.position.set(0, 0, 0);
+
+    const sky = new THREE.Mesh(
+      new THREE.SphereGeometry(320, 32, 18),
+      new THREE.ShaderMaterial({
+        uniforms: {
+          uSunDir: { value: sunDir.clone() },
+          uSunColor: { value: new THREE.Color(0xfff6e8) },
+          uSunStrength: { value: 1 },
+        },
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false,
+        vertexShader: `
+          varying vec3 vDir;
+          void main() {
+            vDir = position;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          varying vec3 vDir;
+          uniform vec3 uSunColor, uSunDir;
+          uniform float uSunStrength;
+          void main() {
+            vec3 d = normalize(vDir);
+            float sd = max(dot(d, normalize(uSunDir)), 0.0);
+            vec3 col = uSunColor * pow(sd, 2200.0) * 2.1 * uSunStrength;
+            float halo = pow(sd, 18.0) * 0.08 * uSunStrength;
+            col += uSunColor * halo;
+            gl_FragColor = vec4(col, 1.0);
+          }
+        `,
+      })
+    );
+    sky.frustumCulled = false;
+    scene.add(sky);
+
+    const sunGlowTex = (() => {
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = 256;
+      const g = cv.getContext("2d");
+      const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+      grad.addColorStop(0, "rgba(255,252,245,1)");
+      grad.addColorStop(0.1, "rgba(255,244,220,0.8)");
+      grad.addColorStop(0.28, "rgba(255,220,170,0.18)");
+      grad.addColorStop(1, "rgba(255,220,170,0)");
+      g.fillStyle = grad;
+      g.fillRect(0, 0, 256, 256);
+      return new THREE.CanvasTexture(cv);
+    })();
+    const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: sunGlowTex, transparent: true, depthWrite: false, depthTest: false,
+      blending: THREE.AdditiveBlending, fog: false,
+    }));
+    sunGlow.scale.setScalar(14);
+    sunGlow.position.copy(sunDir.clone().multiplyScalar(180));
+    scene.add(sunGlow);
+
+    // Stars
+    {
+      const starCount = 1600;
+      const starPos = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount; i++) {
+        const u = Math.random() * Math.PI * 2;
+        const v = Math.acos(Math.random() * 1.15 - 0.15);
+        const rad = 240;
+        starPos[i * 3] = Math.sin(v) * Math.cos(u) * rad;
+        starPos[i * 3 + 1] = Math.abs(Math.cos(v)) * rad;
+        starPos[i * 3 + 2] = Math.sin(v) * Math.sin(u) * rad;
+      }
+      const stars = new THREE.Points(
+        new THREE.BufferGeometry().setAttribute("position", new THREE.BufferAttribute(starPos, 3)),
+        new THREE.PointsMaterial({
+          color: 0xffffff, size: 1.05, sizeAttenuation: false,
+          transparent: true, opacity: 0.92, depthWrite: false, fog: false,
+        })
+      );
+      stars.frustumCulled = false;
+      scene.add(stars);
+    }
+
+    // Soft dust motes near camera path
+    const dustCount = 420;
+    const dustPos = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount; i++) {
+      dustPos[i * 3] = (Math.random() - 0.5) * 70;
+      dustPos[i * 3 + 1] = Math.random() * 8 + 0.4;
+      dustPos[i * 3 + 2] = (Math.random() - 0.5) * 70;
+    }
+    const dustGeo = new THREE.BufferGeometry();
+    dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+    const dust = new THREE.Points(
+      dustGeo,
+      new THREE.PointsMaterial({
+        color: 0xcfc6b6, size: 0.08, transparent: true, opacity: 0.28,
+        depthWrite: false, blending: THREE.AdditiveBlending,
+      })
+    );
+    scene.add(dust);
+
+    // --- Terrain ---
+    const TERRAIN_SIZE = 120;
+    const TERRAIN_SEGS = 128;
+    const heightData = new Float32Array((TERRAIN_SEGS + 1) * (TERRAIN_SEGS + 1));
+
+    function noise2(x, z) {
+      return (
+        Math.sin(x * 0.11) * Math.cos(z * 0.09) * 2.2 +
+        Math.sin(x * 0.27 + 1.7) * Math.cos(z * 0.23) * 1.1 +
+        Math.sin(x * 0.55) * Math.sin(z * 0.48) * 0.45
+      );
+    }
+
+    function buildHeight(ix, iz) {
+      const x = (ix / TERRAIN_SEGS - 0.5) * TERRAIN_SIZE;
+      const z = (iz / TERRAIN_SEGS - 0.5) * TERRAIN_SIZE;
+      let h = noise2(x, z) * 1.8;
+      const cr = Math.hypot(x + 18, z - 12);
+      if (cr < 14) h -= (1 - cr / 14) * (1 - cr / 14) * 5.5;
+      const cliff = Math.max(0, Math.tanh((x - 18) * 0.55)) * 8.5;
+      h += cliff;
+      const edge = Math.max(0, Math.hypot(x, z) - 48);
+      h -= edge * 0.35;
+      if (x < -20 && z > 5) h += 2.5;
+      return h;
+    }
+
+    for (let iz = 0; iz <= TERRAIN_SEGS; iz++) {
+      for (let ix = 0; ix <= TERRAIN_SEGS; ix++) {
+        heightData[iz * (TERRAIN_SEGS + 1) + ix] = buildHeight(ix, iz);
+      }
+    }
+
+    function sampleHeight(x, z) {
+      const u = (x / TERRAIN_SIZE + 0.5) * TERRAIN_SEGS;
+      const v = (z / TERRAIN_SIZE + 0.5) * TERRAIN_SEGS;
+      const x0 = Math.floor(u);
+      const z0 = Math.floor(v);
+      if (x0 < 0 || z0 < 0 || x0 >= TERRAIN_SEGS || z0 >= TERRAIN_SEGS) return -20;
+      const fx = u - x0;
+      const fz = v - z0;
+      const i = (zz, xx) => heightData[zz * (TERRAIN_SEGS + 1) + xx];
+      const h00 = i(z0, x0);
+      const h10 = i(z0, x0 + 1);
+      const h01 = i(z0 + 1, x0);
+      const h11 = i(z0 + 1, x0 + 1);
+      const hx0 = h00 * (1 - fx) + h10 * fx;
+      const hx1 = h01 * (1 - fx) + h11 * fx;
+      return hx0 * (1 - fz) + hx1 * fz;
+    }
+
+    function sampleNormal(x, z) {
+      const e = 0.6;
+      const hL = sampleHeight(x - e, z);
+      const hR = sampleHeight(x + e, z);
+      const hD = sampleHeight(x, z - e);
+      const hU = sampleHeight(x, z + e);
+      return new THREE.Vector3(hL - hR, 2 * e, hD - hU).normalize();
+    }
+
+    const regolith = regolithMaps();
+    const terrainGeo = new THREE.PlaneGeometry(TERRAIN_SIZE, TERRAIN_SIZE, TERRAIN_SEGS, TERRAIN_SEGS);
+    terrainGeo.rotateX(-Math.PI / 2);
+    {
+      const pos = terrainGeo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        pos.setY(i, sampleHeight(pos.getX(i), pos.getZ(i)));
+      }
+      pos.needsUpdate = true;
+      terrainGeo.computeVertexNormals();
+    }
+
+    const regC = new THREE.Color(0xa09c94);
+    const paleC = new THREE.Color(0xd0cbbf);
+    const amberC = new THREE.Color(0xd29a45);
+    const redC = new THREE.Color(0xc24e46);
+    const coldC = new THREE.Color(0x1d3348);
+    const terrainMat = new THREE.MeshStandardMaterial({
+      map: regolith.map,
+      normalMap: regolith.norm,
+      normalScale: new THREE.Vector2(0.32, 0.32),
+      roughness: 1,
+      metalness: 0,
+      vertexColors: true,
+    });
+    {
+      const pos = terrainGeo.attributes.position;
+      const colors = new Float32Array(pos.count * 3);
+      const tint = new THREE.Color();
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        const n = fbm(x * 0.08, z * 0.08);
+        tint.copy(regC).lerp(paleC, clamp(n, 0, 1) * 0.7);
+        const iceNear = Math.hypot(x + 22, z - 16) < 10 || Math.hypot(x - 10, z + 22) < 9;
+        if (iceNear) tint.lerp(coldC, 0.55);
+        else if (y < -2.5) tint.lerp(new THREE.Color(0x3a3c40), 0.45);
+        else {
+          const s = THREE.MathUtils.radToDeg(Math.acos(clamp(sampleNormal(x, z).y, -1, 1)));
+          if (s > 28) tint.lerp(redC, 0.35);
+          else if (Math.hypot(x + 12, z - 18) < 9 || Math.hypot(x - 22, z + 8) < 8) tint.lerp(amberC, 0.28);
+        }
+        colors[i * 3] = tint.r;
+        colors[i * 3 + 1] = tint.g;
+        colors[i * 3 + 2] = tint.b;
+      }
+      terrainGeo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    }
+    const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+    terrain.receiveShadow = true;
+    scene.add(terrain);
+
+    // Rocks
+    const rocks = [];
+    const rockGeo = new THREE.DodecahedronGeometry(1, 0);
+    const rockMat = new THREE.MeshStandardMaterial({
+      color: 0x5c574e, roughness: 0.95, metalness: 0.02, flatShading: true,
+    });
+    for (let i = 0; i < 55; i++) {
+      const rx = (Math.random() - 0.5) * 90;
+      const rz = (Math.random() - 0.5) * 90;
+      const ry = sampleHeight(rx, rz);
+      if (ry < -3) continue;
+      const rock = new THREE.Mesh(rockGeo, rockMat);
+      const s = 0.35 + Math.random() * 1.4;
+      rock.scale.set(s, s * (0.6 + Math.random() * 0.7), s);
+      rock.position.set(rx, ry + s * 0.3, rz);
+      rock.rotation.set(Math.random(), Math.random(), Math.random());
+      rock.castShadow = true;
+      rock.receiveShadow = true;
+      rock.userData.radius = s * 0.85;
+      scene.add(rock);
+      rocks.push(rock);
+    }
+
+    // Hot zones
+    const hotZones = [
+      { x: -12, z: 18, r: 8 },
+      { x: 22, z: -8, r: 7 },
+      { x: 5, z: 28, r: 6 },
+    ];
+    for (const hz of hotZones) {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(hz.r * 0.55, hz.r, 32),
+        new THREE.MeshBasicMaterial({ color: 0xd29a45, transparent: true, opacity: 0.16, side: THREE.DoubleSide })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.set(hz.x, sampleHeight(hz.x, hz.z) + 0.08, hz.z);
+      scene.add(ring);
+    }
+
+    // Deposits
+    const deposits = [
+      { id: "mineral_a", type: "mineral", x: -8, z: -14, value: 55, label: "Basalt mineral" },
+      { id: "mineral_b", type: "mineral", x: 16, z: 10, value: 70, label: "Rare earth nodule" },
+      { id: "ice_a", type: "ice", x: -22, z: 16, value: 85, label: "Water ice" },
+      { id: "ice_b", type: "ice", x: 10, z: -22, value: 95, label: "Polar ice lens" },
+    ];
+    const depositMeshes = [];
+    for (const d of deposits) {
+      const y = sampleHeight(d.x, d.z) + 0.2;
+      const color = d.type === "ice" ? 0x9ec0e0 : 0xd29a45;
+      const marker = new THREE.Group();
+      const crystal = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.55, 0),
+        new THREE.MeshStandardMaterial({
+          color,
+          emissive: color,
+          emissiveIntensity: 0.85,
+          roughness: 0.28,
+          metalness: 0.45,
+        })
+      );
+      crystal.position.y = 0.9;
+      crystal.castShadow = true;
+      marker.add(crystal);
+      const beam = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.05, 0.05, 3.2, 8),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.32 })
+      );
+      beam.position.y = 1.8;
+      marker.add(beam);
+      const pad = new THREE.Mesh(
+        new THREE.CircleGeometry(1.4, 24),
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.14, side: THREE.DoubleSide })
+      );
+      pad.rotation.x = -Math.PI / 2;
+      marker.add(pad);
+      marker.position.set(d.x, y, d.z);
+      marker.userData.deposit = d;
+      scene.add(marker);
+      depositMeshes.push({ mesh: marker, crystal, data: d });
+    }
+
+    // --- Rover ---
+    const rover = new THREE.Group();
+    const hullMap = hullTexture();
+    const solarMap = solarTexture();
+    const bodyMat = new THREE.MeshStandardMaterial({
+      map: hullMap, color: 0xffffff, roughness: 0.62, metalness: 0.28,
+    });
+    const accentMat = new THREE.MeshStandardMaterial({ color: 0x2f3834, roughness: 0.55, metalness: 0.25 });
+    const solarMat = new THREE.MeshStandardMaterial({
+      map: solarMap, color: 0xffffff, roughness: 0.35, metalness: 0.55,
+    });
+    const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.45, 1.5), bodyMat);
+    chassis.position.y = 0.55;
+    chassis.castShadow = true;
+    rover.add(chassis);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.5, 1.1), accentMat);
+    cabin.position.set(0.15, 0.95, 0);
+    cabin.castShadow = true;
+    rover.add(cabin);
+    const panelL = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.7, 1.35), solarMat);
+    panelL.position.set(-0.95, 0.95, 0);
+    panelL.rotation.z = 0.18;
+    rover.add(panelL);
+    const panelR = panelL.clone();
+    panelR.position.x = 0.95;
+    panelR.rotation.z = -0.18;
+    rover.add(panelR);
+    const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.1, 8), bodyMat);
+    mast.position.set(-0.55, 1.25, 0);
+    rover.add(mast);
+    const camHead = new THREE.Mesh(
+      new THREE.BoxGeometry(0.28, 0.18, 0.22),
+      new THREE.MeshStandardMaterial({ color: 0x1a1e22, metalness: 0.55, roughness: 0.4 })
+    );
+    camHead.position.set(-0.55, 1.8, 0);
+    rover.add(camHead);
+
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222426, roughness: 0.9 });
+    const wheels = [];
+    const wheelPositions = [
+      [-0.85, 0.28, 0.72],
+      [0, 0.28, 0.72],
+      [0.85, 0.28, 0.72],
+      [-0.85, 0.28, -0.72],
+      [0, 0.28, -0.72],
+      [0.85, 0.28, -0.72],
+    ];
+    for (const [wx, wy, wz] of wheelPositions) {
+      const w = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.22, 12), wheelMat);
+      w.rotation.z = Math.PI / 2;
+      w.position.set(wx, wy, wz);
+      w.castShadow = true;
+      rover.add(w);
+      wheels.push(w);
+    }
+
+    // Arm
+    const armRoot = new THREE.Group();
+    armRoot.position.set(0.9, 0.75, 0.35);
+    rover.add(armRoot);
+    const armBase = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 0.2, 10), accentMat);
+    armRoot.add(armBase);
+    const armYaw = new THREE.Group();
+    armRoot.add(armYaw);
+    const upper = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.85), bodyMat);
+    upper.position.z = 0.4;
+    armYaw.add(upper);
+    const armPitch = new THREE.Group();
+    armPitch.position.z = 0.85;
+    armYaw.add(armPitch);
+    const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.7), bodyMat);
+    forearm.position.z = 0.35;
+    armPitch.add(forearm);
+    const clawPivot = new THREE.Group();
+    clawPivot.position.z = 0.72;
+    armPitch.add(clawPivot);
+    const clawMat = new THREE.MeshStandardMaterial({ color: 0xd29a45, metalness: 0.65, roughness: 0.38 });
+    const clawL = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.28), clawMat);
+    clawL.position.set(-0.08, 0, 0.12);
+    const clawR = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.28), clawMat);
+    clawR.position.set(0.08, 0, 0.12);
+    clawPivot.add(clawL, clawR);
+
+    const armState = { yaw: 0.4, pitch: -0.55, claw: 0.12 };
+
+    function placeRover(x, z, yaw = 0) {
+      const y = sampleHeight(x, z);
+      const n = sampleNormal(x, z);
+      rover.position.set(x, y + 0.15, z);
+      rover.rotation.set(0, yaw, 0);
+      alignRoverToNormal(n);
+      rover.userData.vel = 0;
+      rover.userData.yawRate = 0;
+      rover.userData.heading = yaw;
+    }
+
+    function alignRoverToNormal(n) {
+      const forward = new THREE.Vector3(Math.sin(rover.userData.heading || 0), 0, Math.cos(rover.userData.heading || 0));
+      const right = new THREE.Vector3().crossVectors(forward, n).normalize();
+      const adjForward = new THREE.Vector3().crossVectors(n, right).normalize();
+      const m = new THREE.Matrix4().makeBasis(right, n, adjForward);
+      const q = new THREE.Quaternion().setFromRotationMatrix(m);
+      rover.quaternion.slerp(q, state.mode === "arm" ? 0.2 : 0.35);
+    }
+
+    placeRover(0, 8, Math.PI);
+    scene.add(rover);
+
+    // Trail
+    const trailPositions = [];
+    const trailGeo = new THREE.BufferGeometry();
+    const trailMat = new THREE.LineBasicMaterial({ color: 0x8eb8d8, transparent: true, opacity: 0.8 });
+    const trailLine = new THREE.Line(trailGeo, trailMat);
+    trailLine.visible = false;
+    scene.add(trailLine);
+
+    function ensureTrailVisible(on) {
+      trailLine.visible = on && state.owned.has("path_trail");
+    }
+
+    function pushTrail() {
+      if (!state.owned.has("path_trail")) return;
+      const p = rover.position;
+      const last = trailPositions[trailPositions.length - 1];
+      if (last && last.distanceTo(p) < 0.45) return;
+      trailPositions.push(p.clone());
+      if (trailPositions.length > 400) trailPositions.shift();
+      trailGeo.setFromPoints(trailPositions);
+      trailLine.visible = true;
+    }
+
+    // Input
+    const keys = Object.create(null);
+    window.addEventListener("keydown", (e) => {
+      keys[e.code] = true;
+      if (e.code === "KeyU") toggleUpgrades();
+      if (e.code === "KeyC") toggleSell();
+      if (e.code === "KeyR") resetMission();
+      if (e.code === "KeyE") toggleArmMode();
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (state.mode === "arm") tryExtract();
+      }
+      if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
+        state.assist = true;
+        assistPill.classList.add("on");
+        paintCtrac();
+      }
+    });
+    window.addEventListener("keyup", (e) => {
+      keys[e.code] = false;
+      if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
+        state.assist = false;
+        assistPill.classList.remove("on");
+        paintCtrac();
+      }
+    });
+
+    document.getElementById("upgradeBtn").addEventListener("click", toggleUpgrades);
+    document.getElementById("sellBtn").addEventListener("click", toggleSell);
+    document.getElementById("closeUpgrade").addEventListener("click", () => {
+      upgradeOverlay.classList.remove("open");
+    });
+    document.getElementById("closeSell").addEventListener("click", () => {
+      sellOverlay.classList.remove("open");
+    });
+    document.getElementById("sellAllBtn").addEventListener("click", sellAllCargo);
+    document.getElementById("resetBtn").addEventListener("click", resetMission);
+    document.getElementById("failReset").addEventListener("click", resetMission);
+    upgradeOverlay.addEventListener("click", (e) => {
+      if (e.target === upgradeOverlay) upgradeOverlay.classList.remove("open");
+    });
+    sellOverlay.addEventListener("click", (e) => {
+      if (e.target === sellOverlay) sellOverlay.classList.remove("open");
+    });
+
+    function toggleUpgrades() {
+      if (state.failed) return;
+      sellOverlay.classList.remove("open");
+      upgradeOverlay.classList.toggle("open");
+    }
+
+    function toggleSell() {
+      if (state.failed) return;
+      upgradeOverlay.classList.remove("open");
+      renderSellList();
+      sellOverlay.classList.toggle("open");
+    }
+
+    function nearestDeposit(maxDist = 3.2) {
+      let best = null;
+      let bestD = maxDist;
+      for (const d of depositMeshes) {
+        if (state.samplesTaken.has(d.data.id)) continue;
+        const dist = rover.position.distanceTo(d.mesh.position);
+        if (dist < bestD) {
+          bestD = dist;
+          best = d;
+        }
+      }
+      return best;
+    }
+
+    function toggleArmMode() {
+      if (state.failed) return;
+      if (state.mode === "arm") {
+        state.mode = "drive";
+        armHud.classList.remove("show");
+        modeTxt.textContent = "DRIVE";
+        setStatus("Arm stowed. Drive mode.");
+        return;
+      }
+      const near = nearestDeposit();
+      if (!near) {
+        setStatus("No deposit in reach. Approach a glowing marker.");
+        return;
+      }
+      state.mode = "arm";
+      state.extractProgress = 0;
+      {
+        const local = near.mesh.position.clone();
+        armRoot.worldToLocal(local);
+        armState.yaw = Math.atan2(-local.x, local.z);
+        const reach = Math.hypot(local.x, local.z);
+        armState.pitch = THREE.MathUtils.clamp(-0.35 - (local.y - 0.4) * 0.25 - (reach - 1.2) * 0.15, -1.3, 0.4);
+      }
+      armHud.classList.add("show");
+      modeTxt.textContent = "ARM";
+      setStatus(`Arm deployed over ${near.data.label}. Fine-tune I/K J/L, then Space.`);
+    }
+
+    function getClawWorldPos() {
+      const v = new THREE.Vector3(0, 0, 0.25);
+      clawPivot.localToWorld(v);
+      return v;
+    }
+
+    function tryExtract() {
+      const near = nearestDeposit(4);
+      if (!near) {
+        setStatus("Claw empty — no sample in range.");
+        return;
+      }
+      const claw = getClawWorldPos();
+      const target = near.mesh.position.clone().add(new THREE.Vector3(0, 0.9, 0));
+      const clawDist = claw.distanceTo(target);
+      const bodyDist = rover.position.distanceTo(near.mesh.position);
+      const dist = Math.min(clawDist, bodyDist * 0.85);
+      if (dist > 2.4) {
+        setStatus(`Claw misaligned (${clawDist.toFixed(1)} m). Adjust I/K J/L.`);
+        state.extractProgress = Math.max(0, state.extractProgress - 0.08);
+        return;
+      }
+      state.extractProgress += dist < 1.3 ? 0.5 : 0.34;
+      if (state.extractProgress < 1) {
+        setStatus(`Extracting… ${Math.floor(state.extractProgress * 100)}% — hold alignment.`);
+        return;
+      }
+      state.samplesTaken.add(near.data.id);
+      near.crystal.visible = false;
+      near.mesh.children.forEach((c) => {
+        if (c !== near.crystal) c.visible = false;
+      });
+      addCargo({
+        id: near.data.id,
+        type: near.data.type,
+        label: near.data.label,
+        value: near.data.value,
+      });
+      setStatus(`${near.data.label} stowed in cargo (¤${near.data.value}). Open Sell Bay (C) to cash out.`);
+      state.mode = "drive";
+      armHud.classList.remove("show");
+      modeTxt.textContent = "DRIVE";
+      state.extractProgress = 0;
+    }
+
+    function fail(reason, title = "MISSION FAULT") {
+      if (state.failed) return;
+      state.failed = true;
+      state.mode = "dead";
+      state.failReason = reason;
+      failTitle.textContent = title;
+      failBody.textContent = reason;
+      failBanner.classList.add("open");
+      failBanner.classList.remove("ok");
+      setStatus(reason);
+      modeTxt.textContent = "OFFLINE";
+    }
+
+    function resetMission() {
+      failBanner.classList.remove("open");
+      upgradeOverlay.classList.remove("open");
+      sellOverlay.classList.remove("open");
+      state.failed = false;
+      state.integrity = 100;
+      state.temp = 22;
+      state.mode = "drive";
+      state.assist = false;
+      state.extractProgress = 0;
+      assistPill.classList.remove("on");
+      armHud.classList.remove("show");
+      placeRover(0, 8, Math.PI);
+      trailPositions.length = 0;
+      trailGeo.setFromPoints([]);
+      ensureTrailVisible(state.owned.has("path_trail"));
+      for (const d of depositMeshes) {
+        const taken = state.samplesTaken.has(d.data.id);
+        d.crystal.visible = !taken;
+        d.mesh.children.forEach((c) => {
+          if (c !== d.crystal) c.visible = !taken;
+        });
+      }
+      modeTxt.textContent = "DRIVE";
+      setStatus("Rover relaunched. Money & cargo retained. Seek remaining deposits.");
+      paintMoney(false);
+      paintCargo();
+      paintCtrac();
+      updateHud(0);
+    }
+
+    function damage(amount, reason) {
+      if (state.failed) return;
+      state.integrity = Math.max(0, state.integrity - amount);
+      if (state.integrity <= 0) fail(reason || "Integrity depleted. Chassis lost.");
+    }
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+      bloom.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function updateHud(dt) {
+      paintMoney(false);
+      integrityTxt.textContent = `${Math.round(state.integrity)}%`;
+      integrityTxt.className = state.integrity < 35 ? "warn" : "ok";
+      integrityBar.classList.toggle("danger", state.integrity < 35);
+      integrityBar.querySelector("i").style.width = `${state.integrity}%`;
+
+      tempTxt.textContent = `${Math.round(state.temp)}°C`;
+      tempTxt.className = state.temp > 70 ? "hot" : "";
+      const tempPct = THREE.MathUtils.clamp(((state.temp - 15) / 85) * 100, 0, 100);
+      tempBar.classList.toggle("hot", state.temp > 70);
+      tempBar.classList.toggle("danger", state.temp > 90);
+      tempBar.querySelector("i").style.width = `${tempPct}%`;
+
+      slopeTxt.textContent = `${state.slope.toFixed(1)}°`;
+      slopeTxt.className = state.slope > 28 ? "warn" : "";
+      speedTxt.textContent = `${Math.abs(state.speed).toFixed(1)} m/s`;
+
+      const showSlopeWarn = state.owned.has("slope_warn") && state.slope > 26 && !state.failed;
+      slopeAlert.classList.toggle("show", showSlopeWarn);
+      paintCtrac();
+    }
+
+    function animateDeposits(t) {
+      for (const d of depositMeshes) {
+        if (state.samplesTaken.has(d.data.id)) continue;
+        d.crystal.rotation.y = t * 0.8;
+        d.crystal.position.y = 0.9 + Math.sin(t * 2 + d.data.x) * 0.12;
+        const pulse = 0.7 + Math.sin(t * 2.4 + d.data.z) * 0.2;
+        if (d.crystal.material.emissiveIntensity !== undefined) {
+          d.crystal.material.emissiveIntensity = pulse;
+        }
+      }
+    }
+
+    const clock = new THREE.Clock();
+    const tmpN = new THREE.Vector3();
+
+    function tick() {
+      const dt = Math.min(clock.getDelta(), 0.05);
+      const t = clock.elapsedTime;
+
+      animateDeposits(t);
+      sunGlow.material.opacity = 0.85 + Math.sin(t * 0.7) * 0.1;
+      dust.rotation.y = t * 0.02;
+      const dpos = dust.geometry.attributes.position;
+      for (let i = 0; i < dustCount; i++) {
+        let y = dpos.getY(i) + dt * (0.08 + (i % 5) * 0.01);
+        if (y > 9) y = 0.3;
+        dpos.setY(i, y);
+      }
+      dpos.needsUpdate = true;
+
+      if (state.mode === "arm" && !state.failed) {
+        if (keys.KeyJ) armState.yaw += dt * 1.4;
+        if (keys.KeyL) armState.yaw -= dt * 1.4;
+        if (keys.KeyI) armState.pitch -= dt * 1.2;
+        if (keys.KeyK) armState.pitch += dt * 1.2;
+        armState.yaw = THREE.MathUtils.clamp(armState.yaw, -1.2, 1.4);
+        armState.pitch = THREE.MathUtils.clamp(armState.pitch, -1.3, 0.6);
+        if (keys.Space) armState.claw = THREE.MathUtils.lerp(armState.claw, 0.02, 0.2);
+        else armState.claw = THREE.MathUtils.lerp(armState.claw, 0.12, 0.15);
+      }
+      armYaw.rotation.y = armState.yaw;
+      armPitch.rotation.x = armState.pitch;
+      clawL.position.x = -armState.claw;
+      clawR.position.x = armState.claw;
+
+      if (!state.failed && state.mode === "drive") {
+        let throttle = 0;
+        let steer = 0;
+        if (keys.KeyW || keys.ArrowUp) throttle += 1;
+        if (keys.KeyS || keys.ArrowDown) throttle -= 1;
+        if (keys.KeyA || keys.ArrowLeft) steer += 1;
+        if (keys.KeyD || keys.ArrowRight) steer -= 1;
+
+        if (state.assist) {
+          const assistThrottle = state.slope > 22 ? 0.25 : state.slope > 16 ? 0.55 : 0.85;
+          throttle = Math.max(throttle, assistThrottle);
+          if (state.slope > 30) {
+            setStatus("Path assist struggling — grade exceeds envelope.");
+          }
+        }
+
+        const maxSpeed = 7.5;
+        const target = throttle * maxSpeed * (state.assist ? 0.7 : 1);
+        rover.userData.vel = THREE.MathUtils.damp(rover.userData.vel, target, 4, dt);
+        const turn = steer * 1.6 * (0.35 + Math.min(1, Math.abs(rover.userData.vel) / 4));
+        rover.userData.heading = (rover.userData.heading || 0) + turn * dt;
+
+        const heading = rover.userData.heading;
+        const move = rover.userData.vel * dt;
+        const nx = rover.position.x + Math.sin(heading) * move;
+        const nz = rover.position.z + Math.cos(heading) * move;
+        const hy = sampleHeight(nx, nz);
+        const n = sampleNormal(nx, nz);
+        tmpN.copy(n);
+
+        const slopeRad = Math.acos(THREE.MathUtils.clamp(n.y, -1, 1));
+        state.slope = THREE.MathUtils.radToDeg(slopeRad);
+        state.speed = rover.userData.vel;
+
+        if (state.slope > 36 && Math.abs(rover.userData.vel) > 2.2) {
+          damage(18, "Tip-over on extreme slope.");
+          if (state.integrity > 0) {
+            rover.userData.vel *= 0.25;
+            setStatus("Near tip! Integrity damaged. Slow down.");
+          }
+        }
+        if (state.slope > 52 && Math.abs(rover.userData.vel) > 1.5) {
+          fail("Rolled on a critical slope. Stabilize next time or buy Slope Warning.", "TIP-OVER");
+        }
+
+        const radial = Math.hypot(nx, nz);
+        if (radial > 52) {
+          rover.userData.vel *= -0.5;
+          setStatus("Boundary beacon — turn back toward the operations plateau.");
+          // fall through without return so camera/render still update
+        } else if (hy < -7.5) {
+          fail("Fell off a cliff. Stay on the illuminated plateau.", "FALL");
+        } else {
+          const drop = rover.position.y - (hy + 0.15);
+          if (drop > 1.8 && Math.abs(rover.userData.vel) > 2) {
+            damage(12, "Hard landing after drop.");
+            setStatus("Suspension shock — rock drop damage.");
+            rover.userData.vel *= 0.4;
+          }
+
+          rover.position.x = nx;
+          rover.position.z = nz;
+          rover.position.y = THREE.MathUtils.damp(rover.position.y, hy + 0.15, 12, dt);
+          alignRoverToNormal(n);
+          state.odometer += Math.abs(move);
+
+          for (const w of wheels) w.rotation.x -= rover.userData.vel * dt * 2.2;
+
+          const now = performance.now();
+          if (now - state.lastBump > 400) {
+            for (const rock of rocks) {
+              const d = rover.position.distanceTo(rock.position);
+              if (d < 1.1 + rock.userData.radius) {
+                state.lastBump = now;
+                damage(8, "Chassis crumpled on rock field.");
+                rover.userData.vel *= -0.35;
+                setStatus("Rock strike! Integrity down.");
+                break;
+              }
+            }
+          }
+
+          let heat = 0;
+          for (const hz of hotZones) {
+            const d = Math.hypot(rover.position.x - hz.x, rover.position.z - hz.z);
+            if (d < hz.r) heat = Math.max(heat, (1 - d / hz.r) * 38);
+          }
+          const driveHeat = Math.abs(rover.userData.vel) * 1.1;
+          const targetTemp = 18 + heat + driveHeat + (state.assist ? 4 : 0);
+          state.temp = THREE.MathUtils.damp(state.temp, targetTemp, 1.2, dt);
+          if (state.temp > 98) {
+            fail("Battery pack overheated in solar soak zone. Cool down between pushes.", "OVERHEAT");
+          } else if (state.temp > 85) {
+            damage(dt * 4, "Thermal runaway.");
+            setStatus("Pack overheating — leave the amber zone or slow cruise.");
+          }
+
+          pushTrail();
+
+          const near = nearestDeposit(5);
+          if (near && Math.random() < 0.01) {
+            setStatus(`${near.data.label} nearby — press E for arm.`);
+          }
+        }
+      } else if (!state.failed) {
+        state.speed = 0;
+        state.temp = THREE.MathUtils.damp(state.temp, 22, 0.6, dt);
+        const n = sampleNormal(rover.position.x, rover.position.z);
+        state.slope = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(n.y, -1, 1)));
+      }
+
+      // Keep fill light tethered to camera for soft earthshine
+      fill.position.copy(camera.position).add(new THREE.Vector3(-8, 6, -4));
+      fill.target.position.copy(rover.position);
+      if (!fill.target.parent) scene.add(fill.target);
+
+      controls.target.lerp(rover.position.clone().add(new THREE.Vector3(0, 1.2, 0)), 1 - Math.pow(0.001, dt));
+      controls.update();
+
+      updateHud(dt);
+      composer.render();
+      requestAnimationFrame(tick);
+    }
+
+    setStatus("Rover online. Extract samples to cargo, then sell for money. Hold Shift for path assist.");
+    requestAnimationFrame(tick);
+
+    window.__roverDebug = {
+      getState: () => ({
+        money: state.money,
+        cargo: state.cargo.map((c) => ({ ...c })),
+        cargoWorth: cargoWorth(),
+        integrity: state.integrity,
+        temp: state.temp,
+        slope: state.slope,
+        mode: state.mode,
+        owned: [...state.owned],
+        samplesTaken: [...state.samplesTaken],
+        soldCount: state.soldCount,
+        odometer: state.odometer,
+        pos: { x: rover.position.x, y: rover.position.y, z: rover.position.z },
+      }),
+      placeNearDeposit: (id = "mineral_a") => {
+        const d = deposits.find((x) => x.id === id) || deposits[0];
+        const ox = 1.35;
+        const oz = 0.2;
+        placeRover(d.x + ox, d.z + oz, Math.atan2(-ox, -oz));
+        return d.id;
+      },
+      grantMoney: (n = 100) => {
+        bumpMoney(n);
+      },
+      grantFunding: (n = 100) => {
+        bumpMoney(n);
+      },
+      forceExtract: (id = "mineral_a") => {
+        const near = depositMeshes.find((d) => d.data.id === id);
+        if (!near || state.samplesTaken.has(id)) return false;
+        state.samplesTaken.add(id);
+        near.crystal.visible = false;
+        near.mesh.children.forEach((c) => {
+          if (c !== near.crystal) c.visible = false;
+        });
+        addCargo({
+          id: near.data.id,
+          type: near.data.type,
+          label: near.data.label,
+          value: near.data.value,
+        });
+        state.mode = "drive";
+        armHud.classList.remove("show");
+        modeTxt.textContent = "DRIVE";
+        setStatus(`${near.data.label} stowed in cargo (¤${near.data.value}). Sell Bay (C) to cash out.`);
+        return true;
+      },
+      sellAll: () => {
+        sellAllCargo();
+        return state.money;
+      },
+      openSell: () => {
+        toggleSell();
+      },
+    };
+    window.__roverBoot = "ok";
+    } catch (err) {
+      console.error(err);
+      window.__roverBoot = String(err && err.message ? err.message : err);
+      const feed = document.getElementById("statusMsg");
+      if (feed) feed.textContent = "Boot fault: " + window.__roverBoot;
+    }
+  </script>
+</body>
+</html>
