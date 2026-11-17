@@ -1,34 +1,26 @@
-# Lunar Deck — Rover Ops (v0)
+# Lunar Deck — Rover Ops (v0, KS2-friendly)
 
-CDN Three.js moon-rover prototype for Project “rover lesson”.
-
-## Play
+CDN Three.js moon rover with a big on-screen arrow pad, short tips, and green→red health bars.
 
 ```bash
-# from repo root
-npx --yes serve moon-rover -l 8765
-# or
-python3 -m http.server 8765 --bind 127.0.0.1 --directory moon-rover
+python3 -m http.server 8765 --bind 127.0.0.1
+# → http://127.0.0.1:8765/
 ```
-
-Open http://127.0.0.1:8765/
-
-If GitHub Pages is on for this repo: `/moon-rover/` on the Pages URL.
 
 ## Controls
 
-| Input | Action |
+| Control | Action |
 | --- | --- |
-| WASD / arrows | Drive |
-| Mouse drag | Orbit camera |
-| Shift | Path-assist cruise |
-| E | Arm mode near a deposit |
-| I/K J/L | Arm pitch / reach |
-| Space | Clamp / extract |
-| U | Upgrade bay |
-| R | Reset after failure |
+| On-screen **↑ ↓ ← →** (arrows / WASD also work) | Drive |
+| **Grab** (or E / Space) | Pick up a glowing rock when close |
+| **Helper** | Gentle cruise assist |
+| **Sell** / **Shop** / **Restart** | Cash in · buy helpers · retry |
 
-## Files
+## Health bars (green → yellow → red)
 
-- `index.html` — full playable game (Three.js via CDN)
-- `PLAN.md` — pillars, v0 vs later milestones, controls
+- **Strength** — damage from rocks / tips / heat (high is good)
+- **Heat** — climbs on orange ground
+- **Tip risk** — steep hills
+- **Edge risk** — cliffs / map edge
+
+Center warnings appear **before** a fail. Fails only after a meter stays red for a short grace time.

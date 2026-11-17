@@ -168,158 +168,185 @@
 
     .cargo-chip.has { color: var(--ice); border-color: rgba(158, 192, 224, 0.4); }
 
-    .ctrac {
+    /* KS2 health meters — green → yellow → red */
+    .health {
       position: absolute;
-      left: 1.25rem;
-      bottom: 1.25rem;
-      width: min(17.5rem, calc(100vw - 2.5rem));
+      left: 1rem;
+      top: 5.6rem;
+      width: min(15.5rem, calc(100vw - 2rem));
       display: grid;
       gap: 0.55rem;
-      padding: 0.75rem 0.9rem 0.85rem;
+      padding: 0.75rem 0.85rem 0.8rem;
       background: var(--panel);
       border: 1px solid var(--panel-edge);
       backdrop-filter: blur(10px);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    .ctrac-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 0.5rem;
-      padding-bottom: 0.35rem;
-      border-bottom: 1px solid rgba(236, 226, 206, 0.14);
-    }
-
-    .ctrac-mark {
+    .health-title {
       font-size: 0.95rem;
       font-weight: 800;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.08em;
       color: var(--cream);
     }
 
-    .ctrac-mark span { color: var(--earth); }
-
-    .ctrac-sub {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      text-align: right;
-      line-height: 1.3;
-      max-width: 9.5rem;
-    }
-
-    .ctrac-block {
+    .meter {
       display: grid;
-      gap: 0.28rem;
+      gap: 0.2rem;
     }
 
-    .ctrac-kicker {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.58rem;
-      letter-spacing: 0.18em;
-      color: var(--earth);
-      text-transform: uppercase;
-    }
-
-    .ctrac-contract {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.7rem;
-      line-height: 1.4;
-      color: var(--cream-dim);
-    }
-
-    .telemetry {
-      display: grid;
-      gap: 0.45rem;
-    }
-
-    .tel-row {
+    .meter-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      gap: 1rem;
       font-family: "IBM Plex Mono", monospace;
-      font-size: 0.74rem;
+      font-size: 0.78rem;
     }
 
-    .tel-row span:first-child {
-      color: var(--muted);
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-    }
-    .tel-row .warn { color: var(--danger); }
-    .tel-row .ok { color: var(--ok); }
-    .tel-row .hot { color: var(--amber-hot); }
+    .meter-row .name { color: var(--cream-dim); letter-spacing: 0.04em; }
+    .meter-row .val { color: var(--cream); font-weight: 600; }
+    .meter-row .val.warn { color: var(--amber-hot); }
+    .meter-row .val.bad { color: #ff8f84; }
 
     .bar {
       width: 100%;
-      height: 3px;
+      height: 10px;
+      border-radius: 3px;
       background: rgba(255, 255, 255, 0.08);
-      margin-top: 0.22rem;
       overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .bar > i {
       display: block;
       height: 100%;
       width: 0%;
-      background: linear-gradient(90deg, #6eae78, #9ec0e0);
-      transition: width 0.15s linear, background 0.2s ease;
+      border-radius: 2px;
+      background: #6eae78;
+      transition: width 0.12s linear, background 0.2s ease;
     }
 
-    .bar.danger > i { background: var(--danger); }
-    .bar.hot > i { background: linear-gradient(90deg, var(--amber), var(--amber-hot)); }
+    .bar.ok > i { background: linear-gradient(90deg, #5ea86a, #8fd089); }
+    .bar.mid > i { background: linear-gradient(90deg, #c9a23a, #f0d56a); }
+    .bar.bad > i { background: linear-gradient(90deg, #c24e46, #ff7a6e); }
 
-    .status-feed {
-      position: absolute;
-      right: 1.25rem;
-      bottom: 1.25rem;
-      width: min(22rem, calc(100vw - 2.5rem));
-      padding: 0.8rem 1.05rem;
-      background: var(--panel);
-      border: 1px solid var(--panel-edge);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.72rem;
-      line-height: 1.5;
-      color: var(--cream-dim);
-      min-height: 3.2rem;
-      backdrop-filter: blur(10px);
-    }
-
-    .status-feed .tag {
-      color: var(--earth);
-      letter-spacing: 0.16em;
-      margin-right: 0.45rem;
-    }
-
-    .controls-hint {
+    .tip-line {
       position: absolute;
       left: 50%;
-      bottom: 1.25rem;
+      bottom: 7.8rem;
       transform: translateX(-50%);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.64rem;
-      letter-spacing: 0.08em;
-      color: rgba(246, 241, 232, 0.42);
+      max-width: min(28rem, calc(100vw - 2rem));
+      padding: 0.45rem 0.85rem;
+      background: rgba(8, 8, 10, 0.7);
+      border: 1px solid rgba(236, 226, 206, 0.18);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--cream);
       text-align: center;
-      max-width: 36rem;
-      line-height: 1.5;
-      pointer-events: none;
+      line-height: 1.3;
     }
 
-    @media (max-width: 900px) {
-      .controls-hint { display: none; }
+    .warn-banner {
+      position: absolute;
+      top: 26%;
+      left: 50%;
+      transform: translateX(-50%) scale(0.98);
+      padding: 0.65rem 1.2rem;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: #fff1c8;
+      border: 2px solid rgba(240, 213, 106, 0.75);
+      background: rgba(40, 28, 8, 0.82);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.2s, color 0.2s;
+      text-align: center;
+      max-width: min(26rem, calc(100vw - 2rem));
+    }
+
+    .warn-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+
+    .warn-banner.bad {
+      color: #ffd0c8;
+      border-color: rgba(194, 78, 70, 0.85);
+      background: rgba(48, 12, 10, 0.85);
+      animation: alertFlash 1s ease-in-out infinite;
+    }
+
+    /* On-screen drive pad for KS2 */
+    .pad {
+      position: absolute;
+      left: 1rem;
+      bottom: 1rem;
+      display: grid;
+      grid-template-columns: 3.1rem 3.1rem 3.1rem;
+      grid-template-rows: 3.1rem 3.1rem 3.1rem;
+      gap: 0.35rem;
+      z-index: 12;
+    }
+
+    .pad button {
+      pointer-events: auto;
+      font-family: "Syne", sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--cream);
+      background: rgba(8, 8, 10, 0.78);
+      border: 2px solid rgba(236, 226, 206, 0.35);
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+    }
+
+    .pad button:active,
+    .pad button.held {
+      background: rgba(240, 213, 106, 0.28);
+      border-color: var(--amber-hot);
+      color: var(--amber-hot);
+    }
+
+    .pad .u { grid-column: 2; grid-row: 1; }
+    .pad .l { grid-column: 1; grid-row: 2; }
+    .pad .r { grid-column: 3; grid-row: 2; }
+    .pad .d { grid-column: 2; grid-row: 3; }
+
+    .pad-actions {
+      position: absolute;
+      right: 1rem;
+      bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      align-items: stretch;
+      z-index: 12;
+      min-width: 8.5rem;
+    }
+
+    .pad-actions .btn.big {
+      font-size: 1.05rem;
+      padding: 0.75rem 1rem;
+      pointer-events: auto;
+    }
+
+    .pad-actions .btn.grab-ready {
+      border-color: var(--ok);
+      color: #b7efbf;
+      background: rgba(110, 174, 120, 0.22);
+      box-shadow: 0 0 18px rgba(110, 174, 120, 0.25);
     }
 
     .action-row {
       position: absolute;
-      top: 5.4rem;
-      right: 1.35rem;
+      top: 5.5rem;
+      right: 1.15rem;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.45rem;
       align-items: flex-end;
     }
 
@@ -376,32 +403,13 @@
       background: rgba(8, 8, 10, 0.55);
     }
 
-    .slope-alert {
-      position: absolute;
-      top: 28%;
-      left: 50%;
-      transform: translateX(-50%) scale(0.96);
-      padding: 0.55rem 1.15rem;
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.82rem;
-      letter-spacing: 0.2em;
-      color: #ffd0c8;
-      border: 1px solid rgba(194, 78, 70, 0.65);
-      background: rgba(40, 12, 10, 0.78);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease, transform 0.2s ease;
-    }
-
-    .slope-alert.show {
-      opacity: 1;
-      transform: translateX(-50%) scale(1);
-      animation: alertFlash 1.1s ease-in-out infinite;
-    }
-
     @keyframes alertFlash {
       0%, 100% { box-shadow: 0 0 0 rgba(194, 78, 70, 0); }
       50% { box-shadow: 0 0 24px rgba(194, 78, 70, 0.4); }
+    }
+
+    .arm-hud {
+      display: none !important;
     }
 
     .panel-overlay {
@@ -607,8 +615,8 @@
     .banner.open { display: flex; flex-direction: column; gap: 0.8rem; }
 
     .banner h1 {
-      font-size: clamp(1.8rem, 5vw, 3rem);
-      letter-spacing: 0.18em;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      letter-spacing: 0.08em;
       color: var(--danger);
       font-weight: 800;
     }
@@ -616,34 +624,13 @@
     .banner.ok h1 { color: var(--ok); }
 
     .banner p {
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.85rem;
-      color: var(--cream-dim);
-      max-width: 28rem;
+      font-size: 1.05rem;
+      color: var(--cream);
+      max-width: 24rem;
       margin: 0 auto;
-      line-height: 1.5;
+      line-height: 1.4;
+      font-weight: 600;
     }
-
-    .arm-hud {
-      position: absolute;
-      top: 50%;
-      left: 1.25rem;
-      transform: translateY(-50%);
-      padding: 0.8rem 0.95rem;
-      background: var(--panel);
-      border: 1px solid rgba(158, 192, 224, 0.4);
-      font-family: "IBM Plex Mono", monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s ease;
-      max-width: 12rem;
-      line-height: 1.5;
-      color: var(--cream-dim);
-    }
-
-    .arm-hud.show { opacity: 1; }
 
     .scanlines {
       position: fixed;
@@ -703,82 +690,71 @@
     <div class="brand-bar">
       <div class="brand">
         <div class="brand-mark">LUNAR <span>DECK</span></div>
-        <div class="brand-sub">Rover Ops · Deck 01</div>
+        <div class="brand-sub">Moon rover</div>
       </div>
       <div class="money-hero" aria-live="polite">
-        <div class="money-label">Money · Credits</div>
+        <div class="money-label">Money</div>
         <div class="money-row">
           <i class="money-coin" id="moneyCoin" aria-hidden="true"></i>
           <div class="money-value" id="money">¤ 0</div>
         </div>
-        <div class="cargo-chip" id="cargoChip">CARGO 0</div>
+        <div class="cargo-chip" id="cargoChip">Bag 0</div>
       </div>
     </div>
 
     <div class="action-row">
-      <div class="assist-pill" id="assistPill">PATH ASSIST ENGAGED</div>
-      <button class="btn" id="sellBtn" type="button">Sell · C</button>
-      <button class="btn" id="upgradeBtn" type="button">Upgrades · U</button>
-      <button class="btn secondary" id="resetBtn" type="button">Reset · R</button>
+      <div class="assist-pill" id="assistPill">HELPER ON</div>
+      <button class="btn" id="sellBtn" type="button">Sell</button>
+      <button class="btn" id="upgradeBtn" type="button">Shop</button>
+      <button class="btn secondary" id="resetBtn" type="button">Restart</button>
     </div>
 
-    <div class="slope-alert" id="slopeAlert">SLOPE CRITICAL</div>
+    <div class="warn-banner" id="warnBanner">Slow down!</div>
 
-    <div class="arm-hud" id="armHud">
-      ARM MODE<br />
-      I/K pitch · J/L reach<br />
-      Space clamp · E exit
-    </div>
-
-    <aside class="ctrac" id="ctrac" aria-label="CTRAC mission console">
-      <div class="ctrac-head">
-        <div class="ctrac-mark">CT<span>RAC</span></div>
-        <div class="ctrac-sub">Contract · Telemetry · Route · Acquisition · Cargo</div>
+    <aside class="health" id="health" aria-label="Rover health">
+      <div class="health-title">Rover health</div>
+      <div class="meter">
+        <div class="meter-row"><span class="name">Strength</span><span class="val" id="integrityTxt">100</span></div>
+        <div class="bar ok" id="integrityBar"><i></i></div>
       </div>
-      <div class="ctrac-block">
-        <div class="ctrac-kicker">Contract</div>
-        <div class="ctrac-contract" id="ctracContract">Extract samples → sell for money → buy autonomy.</div>
+      <div class="meter">
+        <div class="meter-row"><span class="name">Heat</span><span class="val" id="tempTxt">Cool</span></div>
+        <div class="bar ok" id="tempBar"><i></i></div>
       </div>
-      <div class="ctrac-block">
-        <div class="ctrac-kicker">Telemetry</div>
-        <div class="telemetry">
-          <div>
-            <div class="tel-row"><span>INTEGRITY</span><span id="integrityTxt" class="ok">100%</span></div>
-            <div class="bar" id="integrityBar"><i></i></div>
-          </div>
-          <div>
-            <div class="tel-row"><span>PACK TEMP</span><span id="tempTxt">22°C</span></div>
-            <div class="bar" id="tempBar"><i></i></div>
-          </div>
-          <div class="tel-row"><span>SLOPE</span><span id="slopeTxt">0.0°</span></div>
-          <div class="tel-row"><span>SPEED</span><span id="speedTxt">0.0 m/s</span></div>
-          <div class="tel-row"><span>MODE</span><span id="modeTxt">DRIVE</span></div>
-        </div>
+      <div class="meter">
+        <div class="meter-row"><span class="name">Tip risk</span><span class="val" id="slopeTxt">Safe</span></div>
+        <div class="bar ok" id="tipBar"><i></i></div>
       </div>
-      <div class="ctrac-block">
-        <div class="ctrac-kicker">Track</div>
-        <div class="tel-row"><span>ASSIST</span><span id="trackAssist">OFF</span></div>
-        <div class="tel-row"><span>TRAIL</span><span id="trackTrail">LOCKED</span></div>
-        <div class="tel-row"><span>ODO</span><span id="trackOdo">0 m</span></div>
-      </div>
-      <div class="ctrac-block">
-        <div class="ctrac-kicker">Acquisition · Cargo</div>
-        <div class="tel-row"><span>HELD</span><span id="cargoHeld">0</span></div>
-        <div class="tel-row"><span>VALUE</span><span id="cargoValue">¤ 0</span></div>
+      <div class="meter">
+        <div class="meter-row"><span class="name">Edge risk</span><span class="val" id="edgeTxt">Safe</span></div>
+        <div class="bar ok" id="edgeBar"><i></i></div>
       </div>
     </aside>
 
-    <div class="status-feed"><span class="tag">COMMS</span><span id="statusMsg">Rover online. Extract samples to cargo, then sell for money. Hold Shift for path assist.</span></div>
+    <div class="tip-line" id="statusMsg">Drive to a glowing rock. Tap Grab when you get close.</div>
 
-    <div class="controls-hint">
-      WASD drive · E arm · C sell cargo · U upgrades · Shift cruise
+    <div class="pad" id="drivePad" aria-label="Drive pad">
+      <button type="button" class="u" data-dir="up" aria-label="Forward">↑</button>
+      <button type="button" class="l" data-dir="left" aria-label="Left">←</button>
+      <button type="button" class="r" data-dir="right" aria-label="Right">→</button>
+      <button type="button" class="d" data-dir="down" aria-label="Back">↓</button>
     </div>
+
+    <div class="pad-actions">
+      <button class="btn big" id="grabBtn" type="button">Grab</button>
+      <button class="btn big secondary" id="helperBtn" type="button">Helper</button>
+    </div>
+
+    <div class="arm-hud" id="armHud" hidden></div>
+    <span id="modeTxt" hidden>DRIVE</span>
+    <span id="speedTxt" hidden>0</span>
+    <span id="slopeAlert" hidden></span>
   </div>
 
   <div class="panel-overlay" id="sellOverlay">
     <div class="sell-panel interactive">
-      <h2>SELL BAY</h2>
-      <p class="lede">Cargo → credits. Extract first, then sell. Keep it simple.</p>
+      <h2>SELL</h2>
+      <p class="lede">Sell bag rocks for money.</p>
       <ul class="sell-list" id="sellList"></ul>
       <div class="sell-actions">
         <button class="btn" id="sellAllBtn" type="button">Sell all</button>
@@ -789,17 +765,17 @@
 
   <div class="panel-overlay" id="upgradeOverlay">
     <div class="upgrade-panel interactive">
-      <h2>UPGRADE BAY</h2>
-      <p class="lede">Spend money · sensors unlock autonomy</p>
+      <h2>SHOP</h2>
+      <p class="lede">Buy helpers with money.</p>
       <ul class="upgrade-list" id="upgradeList"></ul>
       <button class="btn panel-close" id="closeUpgrade" type="button">Close</button>
     </div>
   </div>
 
   <div class="banner" id="failBanner">
-    <h1 id="failTitle">MISSION FAULT</h1>
-    <p id="failBody">Chassis compromised.</p>
-    <button class="btn interactive" id="failReset" type="button">Relaunch · R</button>
+    <h1 id="failTitle">Oh no!</h1>
+    <p id="failBody">The rover broke.</p>
+    <button class="btn interactive" id="failReset" type="button">Try again</button>
   </div>
 
   <script type="importmap">
@@ -830,10 +806,15 @@
     const tempTxt = document.getElementById("tempTxt");
     const tempBar = document.getElementById("tempBar");
     const slopeTxt = document.getElementById("slopeTxt");
+    const tipBar = document.getElementById("tipBar");
+    const edgeTxt = document.getElementById("edgeTxt");
+    const edgeBar = document.getElementById("edgeBar");
     const speedTxt = document.getElementById("speedTxt");
     const modeTxt = document.getElementById("modeTxt");
     const assistPill = document.getElementById("assistPill");
-    const slopeAlert = document.getElementById("slopeAlert");
+    const warnBanner = document.getElementById("warnBanner");
+    const grabBtn = document.getElementById("grabBtn");
+    const helperBtn = document.getElementById("helperBtn");
     const armHud = document.getElementById("armHud");
     const upgradeOverlay = document.getElementById("upgradeOverlay");
     const upgradeList = document.getElementById("upgradeList");
@@ -842,12 +823,6 @@
     const failBanner = document.getElementById("failBanner");
     const failTitle = document.getElementById("failTitle");
     const failBody = document.getElementById("failBody");
-    const ctracContract = document.getElementById("ctracContract");
-    const trackAssist = document.getElementById("trackAssist");
-    const trackTrail = document.getElementById("trackTrail");
-    const trackOdo = document.getElementById("trackOdo");
-    const cargoHeld = document.getElementById("cargoHeld");
-    const cargoValue = document.getElementById("cargoValue");
 
     const state = {
       money: 0,
@@ -855,12 +830,15 @@
       integrity: 100,
       temp: 22,
       slope: 0,
+      tipRisk: 0,
+      heatRisk: 0,
+      edgeRisk: 0,
       speed: 0,
       mode: "drive",
       assist: false,
       failed: false,
       failReason: "",
-      owned: new Set(),
+      owned: new Set(["slope_warn"]), // tip warnings always on for KS2
       trail: [],
       samplesTaken: new Set(),
       lastBump: 0,
@@ -868,62 +846,59 @@
       clawAligned: false,
       odometer: 0,
       soldCount: 0,
+      warnTip: 0,
+      warnHeat: 0,
+      warnEdge: 0,
+      pad: { up: false, down: false, left: false, right: false },
     };
 
     const UPGRADES = [
       {
-        id: "slope_warn",
-        name: "Slope Warning",
-        desc: "HUD critical-slope alert when grade exceeds safe envelope.",
-        price: 40,
-        available: true,
-      },
-      {
         id: "path_trail",
-        name: "Path Trail Map",
-        desc: "Persist a luminous trail of driven terrain for path memory.",
+        name: "Glow Path",
+        desc: "Draws a bright trail so you can see where you drove.",
         price: 60,
         available: true,
       },
       {
         id: "camera",
-        name: "Camera Sensor",
-        desc: "Forward optical feed with dust filter — future milestone.",
+        name: "Camera",
+        desc: "Coming later — see further ahead.",
         price: 120,
         available: false,
       },
       {
         id: "heat_sig",
-        name: "Heat Signature",
-        desc: "Thermal overlay for hot zones and battery stress.",
+        name: "Heat Eyes",
+        desc: "Coming later — spot hot ground.",
         price: 150,
         available: false,
       },
       {
         id: "battery",
-        name: "Battery Checker",
-        desc: "Live pack health and drain forecast.",
+        name: "Battery Check",
+        desc: "Coming later.",
         price: 100,
         available: false,
       },
       {
         id: "terrain_scan",
-        name: "Terrain Scanner",
-        desc: "Slope/cliff preview cone ahead of the rover.",
+        name: "Ground Scanner",
+        desc: "Coming later — see steep hills early.",
         price: 180,
         available: false,
       },
       {
         id: "satellite",
-        name: "Satellite Terrain Data",
-        desc: "Unlocks PLANNING: safest path + water/rare-earth checkpoints.",
+        name: "Map From Space",
+        desc: "Coming later — safest paths.",
         price: 400,
         available: false,
       },
       {
         id: "rover2",
-        name: "Second Autonomous Rover",
-        desc: "Companion platform sharing map and money.",
+        name: "Second Rover",
+        desc: "Coming later — a helper rover.",
         price: 900,
         available: false,
       },
@@ -931,6 +906,24 @@
 
     function setStatus(msg) {
       statusMsg.textContent = msg;
+    }
+
+    function setBar(el, pct, invertSafe = false) {
+      const v = THREE.MathUtils.clamp(pct, 0, 100);
+      el.querySelector("i").style.width = `${v}%`;
+      el.classList.remove("ok", "mid", "bad");
+      // invertSafe: high % is good (strength). else high % is danger.
+      const dangerLevel = invertSafe ? 100 - v : v;
+      if (dangerLevel < 40) el.classList.add("ok");
+      else if (dangerLevel < 70) el.classList.add("mid");
+      else el.classList.add("bad");
+    }
+
+    function setMeterLabel(el, text, level) {
+      el.textContent = text;
+      el.classList.remove("warn", "bad");
+      if (level === "mid") el.classList.add("warn");
+      if (level === "bad") el.classList.add("bad");
     }
 
     function cargoWorth() {
@@ -951,42 +944,46 @@
 
     function paintCargo() {
       const n = state.cargo.length;
-      const worth = cargoWorth();
-      cargoChip.textContent = `CARGO ${n}`;
+      cargoChip.textContent = `Bag ${n}`;
       cargoChip.classList.toggle("has", n > 0);
-      cargoHeld.textContent = String(n);
-      cargoValue.textContent = `¤ ${worth}`;
       document.getElementById("sellAllBtn").disabled = n === 0;
+      refreshMissionTip();
     }
 
-    function paintCtrac() {
-      const remain = Math.max(0, 4 - state.samplesTaken.size);
+    let worldReady = false;
+
+    function refreshMissionTip() {
+      if (state.failed) return;
       if (state.cargo.length > 0) {
-        ctracContract.textContent = `Cargo ready — sell ¤${cargoWorth()} in Sell Bay (C).`;
-      } else if (remain > 0) {
-        ctracContract.textContent = `Contract: extract ${remain} remaining deposit${remain === 1 ? "" : "s"} into cargo, then sell for money.`;
+        setStatus(`Bag has rocks! Tap Sell to get money (¤${cargoWorth()}).`);
+      } else if (state.samplesTaken.size >= 4) {
+        setStatus("Nice! Open Shop and buy a helper.");
+      } else if (worldReady) {
+        const near = nearestDeposit(5);
+        if (near) setStatus("Glow rock nearby — tap Grab!");
+        else setStatus("Drive to a glowing rock. Tap Grab when close.");
       } else {
-        ctracContract.textContent = "Contract clear — spend money on upgrades or scout new ground.";
+        setStatus("Use the arrow pad to drive. Go to a glowing rock, then tap Grab.");
       }
-      trackAssist.textContent = state.assist ? "ON" : "OFF";
-      trackAssist.className = state.assist ? "ok" : "";
-      trackTrail.textContent = state.owned.has("path_trail") ? "LIVE" : "LOCKED";
-      trackTrail.className = state.owned.has("path_trail") ? "ok" : "";
-      trackOdo.textContent = `${Math.round(state.odometer)} m`;
     }
 
     function bumpMoney(amount) {
       state.money += amount;
       paintMoney(true);
       renderUpgrades();
-      paintCtrac();
+      refreshMissionTip();
     }
 
     function addCargo(item) {
       state.cargo.push(item);
       paintCargo();
-      paintCtrac();
       renderSellList();
+    }
+
+    // keep old name as alias for remaining call sites
+    function paintCtrac() {
+      refreshMissionTip();
+      assistPill.classList.toggle("on", state.assist);
     }
 
     function renderSellList() {
@@ -994,7 +991,7 @@
       if (!state.cargo.length) {
         const empty = document.createElement("li");
         empty.className = "sell-empty";
-        empty.textContent = "Cargo empty. Extract a deposit first.";
+        empty.textContent = "Bag empty. Grab a glowing rock first.";
         sellList.appendChild(empty);
         return;
       }
@@ -1017,7 +1014,7 @@
       const [item] = state.cargo.splice(idx, 1);
       state.soldCount += 1;
       bumpMoney(item.value);
-      setStatus(`Sold ${item.label} for ¤${item.value}. Money is the mission score.`);
+      setStatus(`Sold! +¤${item.value} money.`);
       paintCargo();
       renderSellList();
       paintCtrac();
@@ -1025,7 +1022,7 @@
 
     function sellAllCargo() {
       if (!state.cargo.length) {
-        setStatus("Nothing to sell — cargo empty.");
+        setStatus("Bag empty — grab a rock first.");
         return;
       }
       const total = cargoWorth();
@@ -1033,7 +1030,7 @@
       state.soldCount += n;
       state.cargo.length = 0;
       bumpMoney(total);
-      setStatus(`Sold ${n} sample${n === 1 ? "" : "s"} for ¤${total}.`);
+      setStatus(`Sold everything! +¤${total}`);
       paintCargo();
       renderSellList();
       paintCtrac();
@@ -1069,7 +1066,7 @@
       state.money -= u.price;
       state.owned.add(id);
       paintMoney(false);
-      setStatus(`${u.name} installed. Spent ¤${u.price}.`);
+      setStatus(`Bought ${u.name}!`);
       renderUpgrades();
       paintCtrac();
       if (id === "path_trail") ensureTrailVisible(true);
@@ -1702,31 +1699,65 @@
       trailLine.visible = true;
     }
 
-    // Input
+    // Input — arrows + on-screen pad (WASD still works quietly)
     const keys = Object.create(null);
     window.addEventListener("keydown", (e) => {
       keys[e.code] = true;
       if (e.code === "KeyU") toggleUpgrades();
       if (e.code === "KeyC") toggleSell();
       if (e.code === "KeyR") resetMission();
-      if (e.code === "KeyE") toggleArmMode();
-      if (e.code === "Space") {
+      if (e.code === "KeyE" || e.code === "Space") {
         e.preventDefault();
-        if (state.mode === "arm") tryExtract();
+        doGrab();
       }
       if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
         state.assist = true;
-        assistPill.classList.add("on");
         paintCtrac();
       }
     });
     window.addEventListener("keyup", (e) => {
       keys[e.code] = false;
       if (e.code === "ShiftLeft" || e.code === "ShiftRight") {
-        state.assist = false;
-        assistPill.classList.remove("on");
-        paintCtrac();
+        // Helper button can keep assist on
+        if (!helperBtn.classList.contains("active")) {
+          state.assist = false;
+          paintCtrac();
+        }
       }
+    });
+
+    function bindPad() {
+      const pad = document.getElementById("drivePad");
+      const map = { up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight" };
+      pad.querySelectorAll("button").forEach((btn) => {
+        const dir = btn.dataset.dir;
+        const code = map[dir];
+        const down = (ev) => {
+          ev.preventDefault();
+          keys[code] = true;
+          state.pad[dir] = true;
+          btn.classList.add("held");
+        };
+        const up = (ev) => {
+          ev.preventDefault();
+          keys[code] = false;
+          state.pad[dir] = false;
+          btn.classList.remove("held");
+        };
+        btn.addEventListener("pointerdown", down);
+        btn.addEventListener("pointerup", up);
+        btn.addEventListener("pointerleave", up);
+        btn.addEventListener("pointercancel", up);
+      });
+    }
+    bindPad();
+
+    grabBtn.addEventListener("click", () => doGrab());
+    helperBtn.addEventListener("click", () => {
+      state.assist = !state.assist;
+      helperBtn.classList.toggle("active", state.assist);
+      paintCtrac();
+      setStatus(state.assist ? "Helper on — rover creeps forward carefully." : "Helper off — you steer.");
     });
 
     document.getElementById("upgradeBtn").addEventListener("click", toggleUpgrades);
@@ -1774,61 +1805,26 @@
       return best;
     }
 
-    function toggleArmMode() {
+    function doGrab() {
       if (state.failed) return;
-      if (state.mode === "arm") {
-        state.mode = "drive";
-        armHud.classList.remove("show");
-        modeTxt.textContent = "DRIVE";
-        setStatus("Arm stowed. Drive mode.");
-        return;
-      }
-      const near = nearestDeposit();
+      const near = nearestDeposit(4.2);
       if (!near) {
-        setStatus("No deposit in reach. Approach a glowing marker.");
+        setStatus("Get closer to a glowing rock, then tap Grab.");
         return;
       }
-      state.mode = "arm";
-      state.extractProgress = 0;
-      {
-        const local = near.mesh.position.clone();
-        armRoot.worldToLocal(local);
-        armState.yaw = Math.atan2(-local.x, local.z);
-        const reach = Math.hypot(local.x, local.z);
-        armState.pitch = THREE.MathUtils.clamp(-0.35 - (local.y - 0.4) * 0.25 - (reach - 1.2) * 0.15, -1.3, 0.4);
-      }
-      armHud.classList.add("show");
-      modeTxt.textContent = "ARM";
-      setStatus(`Arm deployed over ${near.data.label}. Fine-tune I/K J/L, then Space.`);
+      // Auto-aim + instant-friendly extract for KS2
+      const local = near.mesh.position.clone();
+      armRoot.worldToLocal(local);
+      armState.yaw = Math.atan2(-local.x, local.z);
+      const reach = Math.hypot(local.x, local.z);
+      armState.pitch = THREE.MathUtils.clamp(-0.35 - (local.y - 0.4) * 0.25 - (reach - 1.2) * 0.15, -1.3, 0.4);
+      state.extractProgress += 0.55;
+      setStatus(`Grabbing… ${Math.min(100, Math.floor(state.extractProgress * 100))}%`);
+      if (state.extractProgress < 1) return;
+      finishExtract(near);
     }
 
-    function getClawWorldPos() {
-      const v = new THREE.Vector3(0, 0, 0.25);
-      clawPivot.localToWorld(v);
-      return v;
-    }
-
-    function tryExtract() {
-      const near = nearestDeposit(4);
-      if (!near) {
-        setStatus("Claw empty — no sample in range.");
-        return;
-      }
-      const claw = getClawWorldPos();
-      const target = near.mesh.position.clone().add(new THREE.Vector3(0, 0.9, 0));
-      const clawDist = claw.distanceTo(target);
-      const bodyDist = rover.position.distanceTo(near.mesh.position);
-      const dist = Math.min(clawDist, bodyDist * 0.85);
-      if (dist > 2.4) {
-        setStatus(`Claw misaligned (${clawDist.toFixed(1)} m). Adjust I/K J/L.`);
-        state.extractProgress = Math.max(0, state.extractProgress - 0.08);
-        return;
-      }
-      state.extractProgress += dist < 1.3 ? 0.5 : 0.34;
-      if (state.extractProgress < 1) {
-        setStatus(`Extracting… ${Math.floor(state.extractProgress * 100)}% — hold alignment.`);
-        return;
-      }
+    function finishExtract(near) {
       state.samplesTaken.add(near.data.id);
       near.crystal.visible = false;
       near.mesh.children.forEach((c) => {
@@ -1840,14 +1836,22 @@
         label: near.data.label,
         value: near.data.value,
       });
-      setStatus(`${near.data.label} stowed in cargo (¤${near.data.value}). Open Sell Bay (C) to cash out.`);
+      setStatus(`Got it! Tap Sell for ¤${near.data.value}.`);
       state.mode = "drive";
-      armHud.classList.remove("show");
       modeTxt.textContent = "DRIVE";
       state.extractProgress = 0;
+      grabBtn.classList.remove("grab-ready");
     }
 
-    function fail(reason, title = "MISSION FAULT") {
+    function toggleArmMode() {
+      doGrab();
+    }
+
+    function tryExtract() {
+      doGrab();
+    }
+
+    function fail(reason, title = "Oh no!") {
       if (state.failed) return;
       state.failed = true;
       state.mode = "dead";
@@ -1858,20 +1862,27 @@
       failBanner.classList.remove("ok");
       setStatus(reason);
       modeTxt.textContent = "OFFLINE";
+      warnBanner.classList.remove("show", "bad");
     }
 
     function resetMission() {
       failBanner.classList.remove("open");
       upgradeOverlay.classList.remove("open");
       sellOverlay.classList.remove("open");
+      warnBanner.classList.remove("show", "bad");
       state.failed = false;
       state.integrity = 100;
       state.temp = 22;
+      state.tipRisk = 0;
+      state.heatRisk = 0;
+      state.edgeRisk = 0;
+      state.warnTip = 0;
+      state.warnHeat = 0;
+      state.warnEdge = 0;
       state.mode = "drive";
-      state.assist = false;
       state.extractProgress = 0;
-      assistPill.classList.remove("on");
-      armHud.classList.remove("show");
+      // keep helper preference
+      state.assist = helperBtn.classList.contains("active");
       placeRover(0, 8, Math.PI);
       trailPositions.length = 0;
       trailGeo.setFromPoints([]);
@@ -1884,7 +1895,7 @@
         });
       }
       modeTxt.textContent = "DRIVE";
-      setStatus("Rover relaunched. Money & cargo retained. Seek remaining deposits.");
+      setStatus("Back online! Drive to a glowing rock.");
       paintMoney(false);
       paintCargo();
       paintCtrac();
@@ -1894,7 +1905,7 @@
     function damage(amount, reason) {
       if (state.failed) return;
       state.integrity = Math.max(0, state.integrity - amount);
-      if (state.integrity <= 0) fail(reason || "Integrity depleted. Chassis lost.");
+      if (state.integrity <= 0) fail(reason || "The rover broke — strength hit zero.", "Broken!");
     }
 
     window.addEventListener("resize", () => {
@@ -1907,25 +1918,77 @@
 
     function updateHud(dt) {
       paintMoney(false);
-      integrityTxt.textContent = `${Math.round(state.integrity)}%`;
-      integrityTxt.className = state.integrity < 35 ? "warn" : "ok";
-      integrityBar.classList.toggle("danger", state.integrity < 35);
-      integrityBar.querySelector("i").style.width = `${state.integrity}%`;
+      speedTxt.textContent = `${Math.abs(state.speed).toFixed(1)}`;
 
-      tempTxt.textContent = `${Math.round(state.temp)}°C`;
-      tempTxt.className = state.temp > 70 ? "hot" : "";
-      const tempPct = THREE.MathUtils.clamp(((state.temp - 15) / 85) * 100, 0, 100);
-      tempBar.classList.toggle("hot", state.temp > 70);
-      tempBar.classList.toggle("danger", state.temp > 90);
-      tempBar.querySelector("i").style.width = `${tempPct}%`;
+      // Strength: high is good
+      setBar(integrityBar, state.integrity, true);
+      const sLevel = state.integrity < 35 ? "bad" : state.integrity < 65 ? "mid" : "ok";
+      setMeterLabel(integrityTxt, String(Math.round(state.integrity)), sLevel === "ok" ? "" : sLevel);
 
-      slopeTxt.textContent = `${state.slope.toFixed(1)}°`;
-      slopeTxt.className = state.slope > 28 ? "warn" : "";
-      speedTxt.textContent = `${Math.abs(state.speed).toFixed(1)} m/s`;
+      // Heat risk 0–100
+      state.heatRisk = THREE.MathUtils.clamp(((state.temp - 20) / 75) * 100, 0, 100);
+      setBar(tempBar, state.heatRisk, false);
+      const hLevel = state.heatRisk < 40 ? "ok" : state.heatRisk < 70 ? "mid" : "bad";
+      setMeterLabel(
+        tempTxt,
+        hLevel === "ok" ? "Cool" : hLevel === "mid" ? "Warm" : "HOT!",
+        hLevel === "ok" ? "" : hLevel
+      );
 
-      const showSlopeWarn = state.owned.has("slope_warn") && state.slope > 26 && !state.failed;
-      slopeAlert.classList.toggle("show", showSlopeWarn);
-      paintCtrac();
+      // Tip risk from slope
+      state.tipRisk = THREE.MathUtils.clamp(((state.slope - 12) / 38) * 100, 0, 100);
+      setBar(tipBar, state.tipRisk, false);
+      const tLevel = state.tipRisk < 40 ? "ok" : state.tipRisk < 70 ? "mid" : "bad";
+      setMeterLabel(
+        slopeTxt,
+        tLevel === "ok" ? "Safe" : tLevel === "mid" ? "Steep" : "TIP!",
+        tLevel === "ok" ? "" : tLevel
+      );
+
+      // Edge risk
+      setBar(edgeBar, state.edgeRisk, false);
+      const eLevel = state.edgeRisk < 40 ? "ok" : state.edgeRisk < 70 ? "mid" : "bad";
+      setMeterLabel(
+        edgeTxt,
+        eLevel === "ok" ? "Safe" : eLevel === "mid" ? "Near edge" : "CLIFF!",
+        eLevel === "ok" ? "" : eLevel
+      );
+
+      // Center warning before fail (always on for KS2)
+      if (!state.failed) {
+        let msg = "";
+        let bad = false;
+        if (state.tipRisk >= 70) {
+          msg = "Too steep! Slow down or turn away.";
+          bad = state.tipRisk >= 85;
+        } else if (state.heatRisk >= 70) {
+          msg = "Getting hot! Leave the orange ground.";
+          bad = state.heatRisk >= 85;
+        } else if (state.edgeRisk >= 70) {
+          msg = "Near a drop! Turn back.";
+          bad = state.edgeRisk >= 85;
+        } else if (state.integrity < 40) {
+          msg = "Strength low — drive carefully.";
+          bad = state.integrity < 25;
+        } else if (state.tipRisk >= 45) {
+          msg = "Hill is getting steep…";
+        } else if (state.heatRisk >= 45) {
+          msg = "Warm zone ahead…";
+        }
+        if (msg) {
+          warnBanner.textContent = msg;
+          warnBanner.classList.add("show");
+          warnBanner.classList.toggle("bad", bad);
+        } else {
+          warnBanner.classList.remove("show", "bad");
+        }
+      }
+
+      const near = nearestDeposit(4.2);
+      grabBtn.classList.toggle("grab-ready", !!near && !state.failed);
+      if (near && !state.failed && state.cargo.length === 0) {
+        // light nudge without spamming every frame handled in refreshMissionTip occasionally
+      }
     }
 
     function animateDeposits(t) {
@@ -1958,22 +2021,16 @@
       }
       dpos.needsUpdate = true;
 
-      if (state.mode === "arm" && !state.failed) {
-        if (keys.KeyJ) armState.yaw += dt * 1.4;
-        if (keys.KeyL) armState.yaw -= dt * 1.4;
-        if (keys.KeyI) armState.pitch -= dt * 1.2;
-        if (keys.KeyK) armState.pitch += dt * 1.2;
-        armState.yaw = THREE.MathUtils.clamp(armState.yaw, -1.2, 1.4);
-        armState.pitch = THREE.MathUtils.clamp(armState.pitch, -1.3, 0.6);
-        if (keys.Space) armState.claw = THREE.MathUtils.lerp(armState.claw, 0.02, 0.2);
-        else armState.claw = THREE.MathUtils.lerp(armState.claw, 0.12, 0.15);
-      }
       armYaw.rotation.y = armState.yaw;
       armPitch.rotation.x = armState.pitch;
       clawL.position.x = -armState.claw;
       clawR.position.x = armState.claw;
 
       if (!state.failed && state.mode === "drive") {
+        // Refresh risk estimates for braking (HUD paints the same values)
+        state.tipRisk = THREE.MathUtils.clamp(((state.slope - 12) / 38) * 100, 0, 100);
+        state.heatRisk = THREE.MathUtils.clamp(((state.temp - 20) / 75) * 100, 0, 100);
+
         let throttle = 0;
         let steer = 0;
         if (keys.KeyW || keys.ArrowUp) throttle += 1;
@@ -1982,17 +2039,22 @@
         if (keys.KeyD || keys.ArrowRight) steer -= 1;
 
         if (state.assist) {
-          const assistThrottle = state.slope > 22 ? 0.25 : state.slope > 16 ? 0.55 : 0.85;
+          const assistThrottle = state.tipRisk > 70 ? 0.15 : state.tipRisk > 45 ? 0.4 : 0.7;
           throttle = Math.max(throttle, assistThrottle);
-          if (state.slope > 30) {
-            setStatus("Path assist struggling — grade exceeds envelope.");
-          }
         }
 
-        const maxSpeed = 7.5;
-        const target = throttle * maxSpeed * (state.assist ? 0.7 : 1);
+        // Auto-brake as tip / edge risk climbs (gives kids time to react)
+        let speedMul = 1;
+        if (state.tipRisk > 70) speedMul *= 0.45;
+        else if (state.tipRisk > 50) speedMul *= 0.7;
+        if (state.edgeRisk > 70) speedMul *= 0.4;
+        else if (state.edgeRisk > 50) speedMul *= 0.65;
+        if (state.heatRisk > 80) speedMul *= 0.55;
+
+        const maxSpeed = 6.2;
+        const target = throttle * maxSpeed * speedMul * (state.assist ? 0.75 : 1);
         rover.userData.vel = THREE.MathUtils.damp(rover.userData.vel, target, 4, dt);
-        const turn = steer * 1.6 * (0.35 + Math.min(1, Math.abs(rover.userData.vel) / 4));
+        const turn = steer * 1.85 * (0.4 + Math.min(1, Math.abs(rover.userData.vel) / 3.5));
         rover.userData.heading = (rover.userData.heading || 0) + turn * dt;
 
         const heading = rover.userData.heading;
@@ -2007,29 +2069,39 @@
         state.slope = THREE.MathUtils.radToDeg(slopeRad);
         state.speed = rover.userData.vel;
 
-        if (state.slope > 36 && Math.abs(rover.userData.vel) > 2.2) {
-          damage(18, "Tip-over on extreme slope.");
-          if (state.integrity > 0) {
-            rover.userData.vel *= 0.25;
-            setStatus("Near tip! Integrity damaged. Slow down.");
-          }
-        }
-        if (state.slope > 52 && Math.abs(rover.userData.vel) > 1.5) {
-          fail("Rolled on a critical slope. Stabilize next time or buy Slope Warning.", "TIP-OVER");
+        // Look-ahead edge risk (height drop / map rim)
+        const look = 4.5;
+        const lx = nx + Math.sin(heading) * look;
+        const lz = nz + Math.cos(heading) * look;
+        const aheadH = sampleHeight(lx, lz);
+        const dropAhead = hy - aheadH;
+        const radial = Math.hypot(nx, nz);
+        let edge = 0;
+        if (radial > 40) edge = Math.max(edge, ((radial - 40) / 12) * 100);
+        if (dropAhead > 2) edge = Math.max(edge, ((dropAhead - 2) / 6) * 100);
+        if (hy < -2) edge = Math.max(edge, ((-2 - hy) / 5) * 100);
+        state.edgeRisk = THREE.MathUtils.clamp(edge, 0, 100);
+
+        // Tip: damage only after sustained danger; fail needs grace timer
+        if (state.tipRisk >= 85 && Math.abs(rover.userData.vel) > 1.2) {
+          state.warnTip += dt;
+          if (state.warnTip > 0.9) damage(dt * 12, "Tipped on a steep hill.");
+          if (state.warnTip > 2.2) fail("The hill was too steep. Watch Tip risk turn red, then turn away.", "Tipped over!");
+        } else {
+          state.warnTip = Math.max(0, state.warnTip - dt * 1.2);
         }
 
-        const radial = Math.hypot(nx, nz);
         if (radial > 52) {
           rover.userData.vel *= -0.5;
-          setStatus("Boundary beacon — turn back toward the operations plateau.");
-          // fall through without return so camera/render still update
+          state.edgeRisk = 100;
         } else if (hy < -7.5) {
-          fail("Fell off a cliff. Stay on the illuminated plateau.", "FALL");
+          state.warnEdge += dt;
+          if (state.warnEdge > 0.35) fail("Fell off the edge. When Edge risk goes red, turn back!", "Fell!");
         } else {
+          state.warnEdge = Math.max(0, state.warnEdge - dt);
           const drop = rover.position.y - (hy + 0.15);
-          if (drop > 1.8 && Math.abs(rover.userData.vel) > 2) {
-            damage(12, "Hard landing after drop.");
-            setStatus("Suspension shock — rock drop damage.");
+          if (drop > 2.2 && Math.abs(rover.userData.vel) > 2.4) {
+            damage(8, "Hard bump after a drop.");
             rover.userData.vel *= 0.4;
           }
 
@@ -2042,14 +2114,13 @@
           for (const w of wheels) w.rotation.x -= rover.userData.vel * dt * 2.2;
 
           const now = performance.now();
-          if (now - state.lastBump > 400) {
+          if (now - state.lastBump > 500) {
             for (const rock of rocks) {
               const d = rover.position.distanceTo(rock.position);
-              if (d < 1.1 + rock.userData.radius) {
+              if (d < 1.05 + rock.userData.radius) {
                 state.lastBump = now;
-                damage(8, "Chassis crumpled on rock field.");
-                rover.userData.vel *= -0.35;
-                setStatus("Rock strike! Integrity down.");
+                damage(6, "Hit a rock — strength down.");
+                rover.userData.vel *= -0.3;
                 break;
               }
             }
@@ -2060,28 +2131,32 @@
             const d = Math.hypot(rover.position.x - hz.x, rover.position.z - hz.z);
             if (d < hz.r) heat = Math.max(heat, (1 - d / hz.r) * 38);
           }
-          const driveHeat = Math.abs(rover.userData.vel) * 1.1;
-          const targetTemp = 18 + heat + driveHeat + (state.assist ? 4 : 0);
-          state.temp = THREE.MathUtils.damp(state.temp, targetTemp, 1.2, dt);
-          if (state.temp > 98) {
-            fail("Battery pack overheated in solar soak zone. Cool down between pushes.", "OVERHEAT");
-          } else if (state.temp > 85) {
-            damage(dt * 4, "Thermal runaway.");
-            setStatus("Pack overheating — leave the amber zone or slow cruise.");
+          const driveHeat = Math.abs(rover.userData.vel) * 0.9;
+          const targetTemp = 18 + heat + driveHeat + (state.assist ? 3 : 0);
+          state.temp = THREE.MathUtils.damp(state.temp, targetTemp, 1.0, dt);
+
+          if (state.heatRisk >= 85) {
+            state.warnHeat += dt;
+            if (state.warnHeat > 0.8) damage(dt * 8, "Got too hot.");
+            if (state.warnHeat > 2.4) fail("Too hot! When Heat turns red, leave the orange ground.", "Overheated!");
+          } else {
+            state.warnHeat = Math.max(0, state.warnHeat - dt * 1.1);
+          }
+
+          // Edge grace fail if lingering in red while moving toward drop
+          if (state.edgeRisk >= 90 && dropAhead > 4 && Math.abs(rover.userData.vel) > 1.5) {
+            state.warnEdge += dt;
+            if (state.warnEdge > 1.8) fail("Drove toward a cliff. Turn when Edge risk is red.", "Cliff!");
           }
 
           pushTrail();
-
-          const near = nearestDeposit(5);
-          if (near && Math.random() < 0.01) {
-            setStatus(`${near.data.label} nearby — press E for arm.`);
-          }
         }
       } else if (!state.failed) {
         state.speed = 0;
         state.temp = THREE.MathUtils.damp(state.temp, 22, 0.6, dt);
         const n = sampleNormal(rover.position.x, rover.position.z);
         state.slope = THREE.MathUtils.radToDeg(Math.acos(THREE.MathUtils.clamp(n.y, -1, 1)));
+        state.edgeRisk = THREE.MathUtils.damp(state.edgeRisk, 0, 2, dt);
       }
 
       // Keep fill light tethered to camera for soft earthshine
@@ -2097,7 +2172,8 @@
       requestAnimationFrame(tick);
     }
 
-    setStatus("Rover online. Extract samples to cargo, then sell for money. Hold Shift for path assist.");
+    worldReady = true;
+    setStatus("Use the arrow pad to drive. Go to a glowing rock, then tap Grab.");
     requestAnimationFrame(tick);
 
     window.__roverDebug = {
@@ -2143,9 +2219,8 @@
           value: near.data.value,
         });
         state.mode = "drive";
-        armHud.classList.remove("show");
         modeTxt.textContent = "DRIVE";
-        setStatus(`${near.data.label} stowed in cargo (¤${near.data.value}). Sell Bay (C) to cash out.`);
+        setStatus(`Got it! Tap Sell for ¤${near.data.value}.`);
         return true;
       },
       sellAll: () => {
