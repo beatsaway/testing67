@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>The screen</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #14120f; color: #f4efe6; font: 16px/1.45 ui-sans-serif, system-ui, sans-serif; }
+  body { display: grid; place-items: center; }
+  .room {
+    width: min(1100px, 96vw);
+  }
+  .bezel {
+    background: #2a2824;
+    border-radius: 28px;
+    padding: 22px 22px 28px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+  }
+  #screen { width: 100%; height: min(62vh, 560px); display: block; border-radius: 8px; background: #000; }
+  .capcom { margin: 14px 8px 0; min-height: 3.2em; }
+  .commands { display: flex; gap: 10px; margin-top: 14px; }
+  button {
+    flex: 1; padding: 0.9rem 0.6rem; border: 0; border-radius: 999px;
+    background: #f4efe6; color: #161410; font: 700 1rem/1 inherit; cursor: pointer;
+  }
+  button:disabled { opacity: 0.45; cursor: default; }
+  #badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  #badges span {
+    padding: 6px 10px; border-radius: 999px; background: rgba(0,0,0,0.35);
+  }
+  a.next { display: inline-block; margin-top: 12px; color: #ffe14a; }
+</style>
+</head>
+<body>
+<div class="room">
+  <div class="bezel">
+    <canvas id="screen"></canvas>
+  </div>
+  <p class="capcom" id="say">Capcom: The screen is yours. One move at a time. Tell us what you see.</p>
+  <div class="commands">
+    <button type="button" id="left">Turn left</button>
+    <button type="button" id="forward">Forward</button>
+    <button type="button" id="right">Turn right</button>
+  </div>
+  <div id="badges"></div>
+  <a class="next" href="phase3.html">The sheets are next</a>
+</div>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+
+const canvas = document.getElementById("screen");
+const sayEl = document.getElementById("say");
+const badgeEl = document.getElementById("badges");
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9bb0c4);
+scene.fog = new THREE.Fog(0x9bb0c4, 18, 90);
+const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 200);
+camera.position.set(0, 1.35, 0.2);
+camera.lookAt(0, 1.15, 8);
+
+function height(x, z) {
+  const ridge = Math.exp(-((x - 10) ** 2) / 18) * Math.exp(-((z - 16) ** 2) / 40) * 7;
+  return ridge + Math.sin(x * 0.15) * 0.15;
+}
+function slopeDeg(x, z) {
+  const e = 0.8;
+  const rise = Math.hypot(height(x + e, z) - height(x - e, z), height(x, z + e) - height(x, z - e));
+  return Math.atan(rise / (e * 2)) * 180 / Math.PI;
+}
+const COLD = { x: -8, z: 14, r: 6 };
+
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(120, 120, 80, 80),
+  new THREE.MeshStandardMaterial({ color: 0xcfc6b6, roughness: 0.95 })
+);
+ground.rotation.x = -Math.PI / 2;
+const pos = ground.geometry.attributes.position;
+for (let i = 0; i < pos.count; i++) {
+  const x = pos.getX(i), y = pos.getY(i);
+  pos.setZ(i, height(x, y));
+}
+ground.geometry.computeVertexNormals();
+scene.add(ground);
+
+const shadow = new THREE.Mesh(
+  new THREE.CircleGeometry(COLD.r, 40),
+  new THREE.MeshBasicMaterial({ color: 0x2a3340 })
+);
+shadow.rotation.x = -Math.PI / 2;
+shadow.position.set(COLD.x, 0.05, COLD.z);
+scene.add(shadow);
+
+const lander = new THREE.Mesh(
+  new THREE.ConeGeometry(1.2, 2.4, 8),
+  new THREE.MeshStandardMaterial({ color: 0xe7e0d4 })
+);
+lander.position.set(0, 1.2, -6);
+scene.add(lander);
+
+scene.add(new THREE.HemisphereLight(0xdde7f2, 0x6a5c48, 1.1));
+const sun = new THREE.DirectionalLight(0xfff4e0, 1.4);
+sun.position.set(20, 30, 10);
+scene.add(sun);
+
+const rover = new THREE.Group();
+scene.add(rover);
+rover.add(camera);
+
+let yaw = 0;
+let x = 0;
+let z = 0;
+let busy = false;
+const earned = {};
+const NAMES = {
+  shadow: "Sent into the shade",
+  steep: "Too steep a command",
+  far: "Signal's thin",
+  home: "Brought it home"
+};
+const WHY = {
+  shadow: "That move put the panels in shadow.",
+  steep: "That command pointed us up a slope the wheels will not take.",
+  far: "Home dropped off the edge of the picture.",
+  home: "You brought the picture back to the lander."
+};
+
+function place() {
+  rover.position.set(x, height(x, z) + 0.05, z);
+  rover.rotation.y = yaw;
+}
+place();
+
+function say(text) { sayEl.textContent = "Capcom: " + text; }
+function award(id) {
+  if (earned[id]) return;
+  earned[id] = true;
+  const row = document.createElement("span");
+  row.textContent = NAMES[id];
+  badgeEl.appendChild(row);
+  say(WHY[id]);
+}
+
+function command(turn, forward) {
+  if (busy) return;
+  busy = true;
+  const buttons = document.querySelectorAll(".commands button");
+  buttons.forEach((b) => { b.disabled = true; });
+  const yaw0 = yaw;
+  const x0 = x;
+  const z0 = z;
+  yaw += turn * 0.7;
+  const face = yaw;
+  let dist = forward ? 4 : 0;
+  const tx = x + Math.sin(face) * dist;
+  const tz = z + Math.cos(face) * dist;
+  if (forward && slopeDeg(tx, tz) > 15) dist = 0.3;
+  const x1 = x + Math.sin(face) * dist;
+  const z1 = z + Math.cos(face) * dist;
+  const t0 = performance.now();
+  const dur = 900;
+  function tick(now) {
+    const u = Math.min(1, (now - t0) / dur);
+    const e = u * u * (3 - 2 * u);
+    yaw = yaw0 + (face - yaw0) * e;
+    x = x0 + (x1 - x0) * e;
+    z = z0 + (z1 - z0) * e;
+    place();
+    if (u < 1) requestAnimationFrame(tick);
+    else {
+      busy = false;
+      buttons.forEach((b) => { b.disabled = false; });
+      const here = Math.hypot(x - COLD.x, z - COLD.z) < COLD.r;
+      if (here) award("shadow");
+      else if (forward && slopeDeg(x, z) > 12) award("steep");
+      else if (Math.hypot(x, z) > 36) award("far");
+      else if (Math.hypot(x, z + 6) < 5 && Math.hypot(x0, z0) > 10) award("home");
+      else say("Picture's steady. Send the next move.");
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+document.getElementById("left").onclick = () => command(1, 0);
+document.getElementById("right").onclick = () => command(-1, 0);
+document.getElementById("forward").onclick = () => command(0, 1);
+
+function frame() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  if (canvas.width !== Math.floor(w * devicePixelRatio)) {
+    renderer.setSize(w, h, false);
+    camera.aspect = w / Math.max(1, h);
+    camera.updateProjectionMatrix();
+  }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>

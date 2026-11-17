@@ -1,0 +1,178 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Lunar Site Viewer</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 14px/1.4 sans-serif; }
+    #ui { position: fixed; top: 8px; left: 8px; z-index: 2; max-width: 360px; padding: 10px; border-radius: 8px; background: rgba(20,20,20,.9); }
+    label { display: block; margin: 8px 0 2px; font-size: 12px; color: #ccc; }
+    input[type=file] { width: 100%; font-size: 12px; }
+    button { margin-top: 8px; padding: 6px 10px; cursor: pointer; }
+    #status { margin-top: 8px; font-size: 12px; color: #9cf; }
+    #view { display: flex; height: 100%; }
+    #c3d { flex: 1; display: block; min-width: 0; }
+    #side { width: 280px; border-left: 1px solid #333; padding: 8px; overflow: auto; }
+    #side h3 { margin: 4px 0 8px; font-size: 13px; }
+    #shadow { width: 100%; height: auto; image-rendering: pixelated; background: #000; display: none; }
+  </style>
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/geotiff.js"></script>
+</head>
+<body>
+  <div id="ui">
+    <label>1. Height — Site04_final_adj_5mpp_surf.tif</label>
+    <input id="surf" type="file" accept=".tif,.tiff">
+    <label>2. Slope — Site04_final_adj_5mpp_slp.tif</label>
+    <input id="slp" type="file" accept=".tif,.tiff">
+    <label>3. Shadow — LPSR_85S_060M_201608.tiff</label>
+    <input id="shd" type="file" accept=".tif,.tiff">
+    <button id="build" type="button">Show</button>
+    <div id="status">Choose the height file first. That file alone makes a grey shape.</div>
+  </div>
+  <div id="view">
+    <canvas id="c3d"></canvas>
+    <div id="side">
+      <h3>Shadow map<br>Bright = never sees the Sun</h3>
+      <canvas id="shadow"></canvas>
+    </div>
+  </div>
+  <script>
+    function dragOrbit(camera, dom) {
+      const state = { down: false, x: 0, y: 0, theta: 0.2, phi: 1.05, r: 8000 };
+      function apply() {
+        const cp = Math.cos(state.phi), sp = Math.sin(state.phi);
+        camera.up.set(0, 0, 1);
+        camera.position.set(state.r * sp * Math.sin(state.theta), -state.r * sp * Math.cos(state.theta), state.r * cp);
+        camera.lookAt(0, 0, 0);
+      }
+      dom.addEventListener('pointerdown', (e) => { state.down = true; state.x = e.clientX; state.y = e.clientY; });
+      addEventListener('pointerup', () => { state.down = false; });
+      addEventListener('pointermove', (e) => {
+        if (!state.down) return;
+        state.theta -= (e.clientX - state.x) * 0.008;
+        state.phi = Math.max(0.25, Math.min(1.4, state.phi + (e.clientY - state.y) * 0.005));
+        state.x = e.clientX; state.y = e.clientY;
+        apply();
+      });
+      dom.addEventListener('wheel', (e) => {
+        state.r = Math.max(400, Math.min(40000, state.r + e.deltaY * 8));
+        apply();
+      }, { passive: true });
+      return { update() {}, apply, state };
+    }
+
+    const statusEl = document.getElementById('status');
+    const canvas = document.getElementById('c3d');
+    let renderer, scene, camera, controls, mesh;
+
+    function init() {
+      if (renderer) return;
+      renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0b0e14);
+      camera = new THREE.PerspectiveCamera(55, 2, 0.1, 1e7);
+      camera.up.set(0, 0, 1);
+      controls = dragOrbit(camera, canvas);
+      scene.add(new THREE.HemisphereLight(0xddeeff, 0x223344, 0.9));
+      const dir = new THREE.DirectionalLight(0xffffff, 1);
+      dir.position.set(1, 1, 2);
+      scene.add(dir);
+      (function frame() {
+        requestAnimationFrame(frame);
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        if (canvas.width !== w || canvas.height !== h) {
+          renderer.setSize(w, h, false);
+          camera.aspect = w / h || 1;
+          camera.updateProjectionMatrix();
+        }
+        controls.update();
+        renderer.render(scene, camera);
+      })();
+    }
+
+    async function readRaster(file) {
+      const tiff = await GeoTIFF.fromArrayBuffer(await file.arrayBuffer());
+      const img = await tiff.getImage();
+      const w = img.getWidth(), h = img.getHeight();
+      const step = Math.max(1, Math.ceil(Math.max(w, h) / 280));
+      const [data] = await img.readRasters({ samples: [0] });
+      const sw = Math.ceil(w / step), sh = Math.ceil(h / step);
+      const out = new Float32Array(sw * sh);
+      for (let y = 0; y < sh; y++) {
+        for (let x = 0; x < sw; x++) {
+          const v = Number(data[Math.min(h - 1, y * step) * w + Math.min(w - 1, x * step)]);
+          out[y * sw + x] = Number.isFinite(v) ? v : 0;
+        }
+      }
+      return { data: out, w: sw, h: sh, step };
+    }
+
+    function paintShadow(grid) {
+      const cvs = document.getElementById('shadow');
+      cvs.width = grid.w; cvs.height = grid.h; cvs.style.display = 'block';
+      const ctx = cvs.getContext('2d');
+      const img = ctx.createImageData(grid.w, grid.h);
+      for (let i = 0; i < grid.data.length; i++) {
+        const g = grid.data[i] > 0 ? 230 : 24;
+        img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = g;
+        img.data[i * 4 + 3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+
+    async function show() {
+      const surfFile = document.getElementById('surf').files[0];
+      const slpFile = document.getElementById('slp').files[0];
+      const shdFile = document.getElementById('shd').files[0];
+      if (!surfFile) { statusEl.textContent = 'Choose Site04_final_adj_5mpp_surf.tif first.'; return; }
+      statusEl.textContent = 'Reading ' + surfFile.name + '…';
+      init();
+      const surf = await readRaster(surfFile);
+      let slp = null;
+      if (slpFile) {
+        statusEl.textContent = 'Reading ' + slpFile.name + '…';
+        slp = await readRaster(slpFile);
+      }
+      const W = surf.w, H = surf.h, metres = 5 * surf.step;
+      const geom = new THREE.PlaneGeometry((W - 1) * metres, (H - 1) * metres, W - 1, H - 1);
+      const pos = geom.attributes.position;
+      const colors = new Float32Array(pos.count * 3);
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const i = y * W + x;
+          pos.setZ(i, surf.data[i]);
+          let r = 0.65, g = 0.65, b = 0.65;
+          if (slp) {
+            const s = slp.data[Math.min(slp.data.length - 1, y * slp.w + x)] || 0;
+            if (s < 10) { r = 0.2; g = 0.72; b = 0.28; }
+            else if (s < 15) { r = 0.9; g = 0.62; b = 0.12; }
+            else { r = 0.8; g = 0.18; b = 0.16; }
+          }
+          colors[i * 3] = r; colors[i * 3 + 1] = g; colors[i * 3 + 2] = b;
+        }
+      }
+      geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geom.computeVertexNormals();
+      if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); mesh.material.dispose(); }
+      mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+      scene.add(mesh);
+      const span = Math.max(W, H) * metres;
+      controls.state.r = span * 0.9;
+      controls.apply();
+      if (shdFile) {
+        statusEl.textContent = 'Reading ' + shdFile.name + '…';
+        paintShadow(await readRaster(shdFile));
+      }
+      statusEl.textContent = slp
+        ? 'Merged. Height makes the shape. Slope paints green, amber, and red once.'
+        : 'Height only, so the shape is grey. Add the slope file and click Show again.';
+    }
+
+    document.getElementById('build').addEventListener('click', () => show().catch((err) => {
+      statusEl.textContent = err && err.message ? err.message : String(err);
+    }));
+  </script>
+</body>
+</html>

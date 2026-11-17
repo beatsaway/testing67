@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>The sheets</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #f6f3ec; color: #1b1914; font: 16px/1.45 ui-sans-serif, system-ui, sans-serif; }
+  main { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; min-height: 100%; }
+  aside { padding: 28px 24px; border-right: 1px solid #e2dcd0; }
+  h1 { font-size: 1.6rem; margin: 0 0 0.6rem; }
+  p { margin: 0 0 0.8rem; }
+  ol { margin: 0 0 1rem; padding-left: 1.2rem; }
+  a { color: #1d4e89; }
+  #drop {
+    margin-top: 12px; padding: 18px; border: 2px dashed #b7ad9c; border-radius: 16px;
+    background: #fff; text-align: center;
+  }
+  #drop.over { background: #fff7d6; }
+  button {
+    margin-top: 12px; padding: 0.75rem 1rem; border: 0; border-radius: 999px;
+    background: #1b1914; color: #fff; font: 700 1rem/1 inherit; cursor: pointer;
+  }
+  #files { font-size: 0.92rem; color: #5c564c; }
+  #why { white-space: pre-wrap; }
+  #view { min-height: 100%; }
+  @media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+    #view { height: 55vh; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <aside>
+    <h1>Bring the sheets back</h1>
+    <p>In Google Sheets, open the terrain file. Sort by slope. Cross out every row over 15°. Keep the lit, gentle ground.</p>
+    <ol>
+      <li><a href="../luacas-main/lessons/dataanalytics101/data/mars_terrain.csv">mars_terrain.csv</a></li>
+      <li><a href="../luacas-main/lessons/dataanalytics101/data/rover_missions.csv">rover_missions.csv</a></li>
+      <li><a href="../luacas-main/data/rovers.csv">rovers.csv</a></li>
+    </ol>
+    <p>Drop the files you kept onto the desk. The planner reads them and picks a path.</p>
+    <div id="drop">Drop the CSV files here</div>
+    <p id="files">Nothing on the desk yet.</p>
+    <button type="button" id="ask">Ask the planner</button>
+    <p id="why"></p>
+  </aside>
+  <div id="view"></div>
+</main>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+
+const drop = document.getElementById("drop");
+const filesEl = document.getElementById("files");
+const whyEl = document.getElementById("why");
+const view = document.getElementById("view");
+const tables = [];
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+view.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xe7e2d6);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 200);
+camera.position.set(8, 14, 18);
+camera.lookAt(0, 0, 0);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xc8bba4, 1.2));
+scene.add(new THREE.GridHelper(20, 20, 0xb7ad9c, 0xd9d0c2));
+const dots = new THREE.Group();
+scene.add(dots);
+const pathLine = new THREE.Line(
+  new THREE.BufferGeometry(),
+  new THREE.LineBasicMaterial({ color: 0x1d4e89 })
+);
+scene.add(pathLine);
+
+function resize() {
+  const w = view.clientWidth, h = view.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(1, h);
+  camera.updateProjectionMatrix();
+}
+function frame() { resize(); renderer.render(scene, camera); requestAnimationFrame(frame); }
+frame();
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') q = false;
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else if (c !== "\r") cell += c;
+  }
+  if (cell.length || row.length) { row.push(cell); rows.push(row); }
+  const head = rows.shift().map((h) => h.trim());
+  return rows.filter((r) => r.some((c) => c.trim())).map((r) => {
+    const o = {};
+    head.forEach((h, i) => { o[h] = (r[i] || "").trim(); });
+    return o;
+  });
+}
+
+function num(row, keys) {
+  for (const k of Object.keys(row)) {
+    if (keys.some((want) => k.toLowerCase().includes(want))) {
+      const n = Number(row[k]);
+      if (!Number.isNaN(n)) return n;
+    }
+  }
+  return null;
+}
+
+function sitesOf(rows) {
+  return rows.map((row, i) => {
+    const slope = num(row, ["slope"]);
+    const boulders = num(row, ["boulder"]);
+    const sun = num(row, ["albedo", "sun", "visib"]);
+    const name = row.sample || row.rover || row.terrain || ("row " + (i + 1));
+    return {
+      name,
+      slope,
+      boulders,
+      sun,
+      terrain: row.terrain || "",
+      x: (i % 12) - 6,
+      z: Math.floor(i / 12) - 4,
+      row
+    };
+  }).filter((s) => s.slope != null || s.boulders != null || s.name);
+}
+
+function paint(sites, chosen) {
+  dots.clear();
+  const chosenNames = new Set((chosen || []).map((s) => s.name));
+  sites.forEach((s) => {
+    const steep = s.slope != null && s.slope > 15;
+    const color = chosenNames.has(s.name) ? 0x1d4e89 : steep ? 0xc4553a : 0x3d9a56;
+    const m = new THREE.Mesh(
+      new THREE.SphereGeometry(0.28, 12, 10),
+      new THREE.MeshStandardMaterial({ color })
+    );
+    m.position.set(s.x, (s.slope || 0) * 0.08, s.z);
+    dots.add(m);
+  });
+  if (chosen && chosen.length > 1) {
+    const pts = chosen.map((s) => new THREE.Vector3(s.x, (s.slope || 0) * 0.08, s.z));
+    pathLine.geometry.dispose();
+    pathLine.geometry = new THREE.BufferGeometry().setFromPoints(pts);
+    pathLine.visible = true;
+  } else pathLine.visible = false;
+}
+
+function planner(sites) {
+  const scored = sites.map((s) => {
+    let score = 0;
+    const notes = [];
+    if (s.slope == null) {
+      score -= 5;
+      notes.push("no slope, so I will not trust it for a drive");
+    } else if (s.slope > 15) {
+      score -= 40;
+      notes.push("slope " + s.slope + "° is over the 15° line");
+    } else {
+      score += 20 - s.slope;
+      notes.push("slope " + s.slope + "° is gentle");
+    }
+    if (s.boulders != null) {
+      score -= s.boulders * 0.15;
+      notes.push(s.boulders + " boulders nearby");
+    }
+    if (/ice|shadow|dark/i.test(s.terrain)) {
+      score -= 15;
+      notes.push("that ground stays cold");
+    }
+    return { s, score, notes };
+  }).sort((a, b) => b.score - a.score);
+  const path = scored.filter((item) => item.s.slope == null || item.s.slope <= 15).slice(0, 5).map((item) => item.s);
+  const best = scored[0];
+  const refused = scored.find((item) => item.s.slope > 15);
+  let text = "I read the rows you brought back.\n\n";
+  if (!best) text += "I could not find a site to stand on.";
+  else {
+    text += "I would start at " + best.s.name + ". " + best.notes.join(". ") + ".";
+    if (path.length > 1) text += "\n\nThen I would walk " + path.map((s) => s.name).join(" → ") + ".";
+    if (refused) text += "\n\nI left " + refused.s.name + " out. " + refused.notes[0] + ".";
+  }
+  text += "\n\nThat is the difference. In the seat, Neil could talk you into the slope. On the screen, one command could send the rover there. Here the sheet can refuse the row before anyone drives.";
+  return { path, text };
+}
+
+let current = [];
+function takeFiles(fileList) {
+  const files = [...fileList].filter((f) => /csv$/i.test(f.name) || f.type.includes("csv") || f.type === "text/plain");
+  if (!files.length) return;
+  Promise.all(files.map((f) => f.text().then((text) => ({ name: f.name, rows: parseCSV(text) })))).then((loaded) => {
+    loaded.forEach((item) => tables.push(item));
+    filesEl.textContent = tables.map((t) => t.name + " (" + t.rows.length + " rows)").join(", ");
+    current = tables.flatMap((t) => sitesOf(t.rows)).filter((s) => s.slope != null);
+    if (!current.length) current = tables.flatMap((t) => sitesOf(t.rows));
+    paint(current, []);
+    whyEl.textContent = "The map is up. Green is gentle. Red is over 15°. Ask the planner when you are ready.";
+  });
+}
+
+drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", (e) => {
+  e.preventDefault();
+  drop.classList.remove("over");
+  takeFiles(e.dataTransfer.files);
+});
+document.getElementById("ask").onclick = () => {
+  if (!current.length) {
+    whyEl.textContent = "Drop a CSV first. The terrain file is the one with slope_deg.";
+    return;
+  }
+  const result = planner(current);
+  paint(current, result.path);
+  whyEl.textContent = result.text;
+};
+</script>
+</body>
+</html>
